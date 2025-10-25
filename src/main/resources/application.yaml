@@ -1,0 +1,29 @@
+server:
+  port: 8084
+  servlet:
+    context-path: /
+
+jwt:
+  signerKey : "cNXtAlDGLkUAYwQGg25BZzDm+YrV2MuO4halw14ucMD6tD4aE+laaFujVv4vk/SZJKMNMktf0rJB+F2al3bMFw=="
+  signerKey_refresh : "aNXtAlDGLkUAYwQGg25BZzDm+YrV2MuO4halw14thMD6tD4aE+laaFujVv4vk/SZJKMNMktf0rJB+F2al3bMFw=="
+  token-time : 60 #MIN
+  refresh-token-time : 30  #DAY
+
+spring:
+  application:
+    name: lkdt
+  datasource:
+    url: jdbc:postgresql://100.114.136.16:5433/postgres
+    driverClassName: org.postgresql.Driver
+    password: laodaicaha
+    username: supabase_admin
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
