@@ -39,7 +39,6 @@ public class ComponentController {
         responseApi.setMessenger("Lấy thông tin linh kiện thành công");
         return ResponseEntity.ok(responseApi);
     }
-
     @GetMapping("/components/type/{type}")
     public ResponseEntity<?> getComponentsByType(@PathVariable String type) {
         List<Component> components = componentService.getComponentsByType(type);
