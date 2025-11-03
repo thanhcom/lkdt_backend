@@ -3,6 +3,7 @@ package thanhcom.site.lkdt.service;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import thanhcom.site.lkdt.dto.request.UserRequest;
 import thanhcom.site.lkdt.entity.Account;
@@ -10,8 +11,10 @@ import thanhcom.site.lkdt.enums.ErrCode;
 import thanhcom.site.lkdt.exception.AppException;
 import thanhcom.site.lkdt.repository.AccountRepository;
 import thanhcom.site.lkdt.utility.PassEncode;
+import thanhcom.site.lkdt.utility.SecurityUtils;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -19,7 +22,11 @@ import java.util.List;
 public class AccountService {
     AccountRepository accountRepository;
     PassEncode passEncode;
+    @PreAuthorize("hasRole('ADMIN')")
     public List<Account> getAllAccounts() {
+        // lặp qua các claim trong JWT và in ra chúng từ tiện ích SecurityUtils
+        Map<String, Object> jwtClaims = SecurityUtils.getJwtClaims();
+        jwtClaims.forEach( (key, value) -> System.out.println("Claim: " + key + " = " + value));
         return accountRepository.findAll();
     }
     public Account getAccountInfo(Long id) {

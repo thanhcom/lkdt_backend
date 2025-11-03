@@ -14,6 +14,7 @@ public enum ErrCode {
     USER_PASSWORD_NOT_MATH(1004,"Password not math!!!",HttpStatus.UNAUTHORIZED),
     USER_NOT_EXISTED(1004,"User not existed!!!",HttpStatus.NOT_FOUND),
     USER_VIEW_INFO(1004,"Users can only view their own information !!!",HttpStatus.NON_AUTHORITATIVE_INFORMATION),
+    USER_ACCESS_DENIED(1003, "You do not have permission to access this resource", HttpStatus.FORBIDDEN),
     //--------PRODUCT
     COMPONENT_NOTFOUND(1201,"Component Not Found !!!",HttpStatus.LENGTH_REQUIRED),
     COMPONENT_NAME_BLANK(1001,"Component name not blank", HttpStatus.LENGTH_REQUIRED),

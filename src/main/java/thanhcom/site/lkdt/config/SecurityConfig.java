@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import thanhcom.site.lkdt.exception.CustomAccessDeniedHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -23,9 +24,10 @@ public class SecurityConfig {
     private String signerKey;
 
     private final CustomJwtDecoder customJwtDecoder;
-
-    public SecurityConfig(CustomJwtDecoder customJwtDecoder) {
+    private final CustomAccessDeniedHandler accessDeniedHandler;
+    public SecurityConfig(CustomJwtDecoder customJwtDecoder , CustomAccessDeniedHandler accessDeniedHandler) {
         this.customJwtDecoder = customJwtDecoder;
+        this.accessDeniedHandler = accessDeniedHandler;
     }
 
     @Bean
@@ -37,6 +39,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, Public_endpoint).permitAll()
                 .requestMatchers(HttpMethod.PUT, Public_endpoint).permitAll()
                 .anyRequest().authenticated()
+
+        ).exceptionHandling(ex -> ex
+                .accessDeniedHandler(accessDeniedHandler) // dùng custom handler
         );
 
         // Cấu Hình JWT với OAuth2 Resource  Server cho phép đăng nhập từ JWT

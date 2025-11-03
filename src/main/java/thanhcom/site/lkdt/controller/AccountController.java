@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
-@RequestMapping("/test")
+@RequestMapping("/account")
 public class AccountController {
     AccountService accountService;
     AccountMapper accountMapper;
