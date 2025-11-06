@@ -32,7 +32,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
         ResponseApi<Void> resp = new ResponseApi<>();
         resp.setResponseCode(ErrCode.UNAUTHORIZED.getCode());
-        resp.setMessenger("Bạn không có quyền truy cập");
+        resp.setMessenger("Bạn không có quyền truy cập tài nguyên này.");
 
         response.getWriter().write(objectMapper.writeValueAsString(resp));
     }

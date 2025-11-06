@@ -31,7 +31,7 @@ public class RoleService {
     }
 
     public Role getRoleByName(String name) {
-        return roleRepository.findByName(name);
+        return roleRepository.findByName(name).orElseThrow(() -> new AppException(ErrCode.ROLE_NOTFOUND));
     }
 
     public Role getRoleById(Long id) {

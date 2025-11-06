@@ -15,10 +15,7 @@ public enum ErrCode {
     USER_NOT_EXISTED(1004,"User not existed!!!",HttpStatus.NOT_FOUND),
     USER_VIEW_INFO(1004,"Users can only view their own information !!!",HttpStatus.NON_AUTHORITATIVE_INFORMATION),
     USER_ACCESS_DENIED(1003, "You do not have permission to access this resource", HttpStatus.FORBIDDEN),
-    //--------PRODUCT
-    COMPONENT_NOTFOUND(1201,"Component Not Found !!!",HttpStatus.LENGTH_REQUIRED),
-    COMPONENT_NAME_BLANK(1001,"Component name not blank", HttpStatus.LENGTH_REQUIRED),
-    COMPONENT_NAME_SIZE(1001,"Component type must be at {min} character and  {max} character!!! ", HttpStatus.LENGTH_REQUIRED),
+
     //--------EMAIL
     EMAIL_NOTFOUND(1101,"Email Not Found !!!",HttpStatus.NOT_FOUND),
     EMAIL_EXISTED(1102,"Email existed !!!",HttpStatus.NOT_ACCEPTABLE),
@@ -26,16 +23,25 @@ public enum ErrCode {
     //--------TYPE PRODUCT
     TYPE_NOTFOUND(1301,"Type Not Found !!!",HttpStatus.NOT_FOUND),
 
+    //------Token
+    TOKEN_EXPIRED(1501,"Token Expired !!!",HttpStatus.UNAUTHORIZED),
+    TOKEN_INVALID(1502,"Token Invalid !!!",HttpStatus.UNAUTHORIZED),
 
     //------PERMISSION
     PERMISSION_NOTFOUND(1401,"Permission Not Found !!!",HttpStatus.NOT_FOUND),
 
-
+    //------COMPONENT
+    COMPONENT_NOTFOUND(1201,"Component Not Found !!!",HttpStatus.LENGTH_REQUIRED),
+    COMPONENT_NAME_BLANK(1001,"Component name not blank", HttpStatus.LENGTH_REQUIRED),
+    COMPONENT_NAME_SIZE(1001,"Component type must be at {min} character and  {max} character!!! ", HttpStatus.LENGTH_REQUIRED),
+    //------SUPPLIER
+    SUPPLIER_NOTFOUND(1601,"Supplier Not Found !!!",HttpStatus.NOT_FOUND),
 
     //------ROLE
     ROLE_NOTFOUND(1402,"Role Not Found !!!",HttpStatus.NOT_FOUND),
 
     UNAUTHORIZED(9999,"Warning !!! UNAUTHORIZED",HttpStatus.UNAUTHORIZED),
+    UNAUTHENTICATED(9998,"Warning !!! UNAUTHENTICATED",HttpStatus.FORBIDDEN),
     INVALID_KEY(9999,"Warning !!! Check and Changer field message valid in ENUM define ",HttpStatus.NOT_ACCEPTABLE)
     ;
     private final int code;

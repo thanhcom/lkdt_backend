@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import thanhcom.site.lkdt.dto.request.RoleRequest;
 import thanhcom.site.lkdt.dto.request.UserRequest;
 import thanhcom.site.lkdt.dto.response.UserResponse;
 import thanhcom.site.lkdt.entity.Account;
@@ -13,6 +14,7 @@ import thanhcom.site.lkdt.responseApi.ResponseApi;
 import thanhcom.site.lkdt.service.AccountService;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @AllArgsConstructor
@@ -32,6 +34,7 @@ public class AccountController {
         return ResponseEntity.ok(responseApi);
     }
 
+
     @PutMapping("/update/{id}")
     public ResponseEntity<?> Update(@RequestBody UserRequest userRequest , @PathVariable Long id) {
         Account account = accountService.editAccount(id, userRequest);
@@ -49,6 +52,16 @@ public class AccountController {
         responseApi.setData(accountMapper.ResToDto(accountInfo));
         responseApi.setResponseCode(2001);
         responseApi.setMessenger("Lấy thông tin tài khoản thành công");
+        return ResponseEntity.ok(responseApi);
+    }
+
+    @PostMapping("/{id}/set-roles")
+    public ResponseEntity<?> SetRoles(@PathVariable Long id , @RequestBody Set<RoleRequest> roles) {
+        Account account = accountService.setRolesToAccount(id, roles);
+        ResponseApi<UserResponse> responseApi = new ResponseApi<>();
+        responseApi.setData(accountMapper.ResToDto(account));
+        responseApi.setResponseCode(2004);
+        responseApi.setMessenger("Cập nhật vai trò tài khoản thành công");
         return ResponseEntity.ok(responseApi);
     }
 

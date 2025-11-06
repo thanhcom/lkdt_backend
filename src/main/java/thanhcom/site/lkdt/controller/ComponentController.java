@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import thanhcom.site.lkdt.dto.request.ComponentCreateRequest;
 import thanhcom.site.lkdt.dto.request.ComponentRequest;
 import thanhcom.site.lkdt.dto.response.ComponentResponse;
 import thanhcom.site.lkdt.entity.Component;
@@ -33,8 +34,8 @@ public class ComponentController {
     @GetMapping("/components/{id}")
     public ResponseEntity<?>  getComponentById(@PathVariable Long id) {
         Component component = componentService.getComponentById(id);
-        ResponseApi<Component> responseApi = new ResponseApi<>();
-        responseApi.setData(component);
+        ResponseApi<ComponentResponse> responseApi = new ResponseApi<>();
+        responseApi.setData(componentMapper.ResToDto(component));
         responseApi.setResponseCode(2002);
         responseApi.setMessenger("Lấy thông tin linh kiện thành công");
         return ResponseEntity.ok(responseApi);
@@ -58,8 +59,8 @@ public class ComponentController {
     @PutMapping("/components/{id}")
     public ResponseEntity<ResponseApi<?>> updateComponent(
             @PathVariable Long id,
-            @Valid @RequestBody ComponentRequest componentRequest) {
-        Component updatedComponent = componentService.updateComponentById(id, componentRequest);
+            @Valid @RequestBody ComponentCreateRequest componentRequest) {
+        Component updatedComponent = componentService.updateComponent(id, componentRequest);
         ResponseApi<Component> response = new ResponseApi<>();
         response.setResponseCode(2003); // business code ví dụ: 2003 = Update success
         response.setMessenger("Cập nhật linh kiện thành công");

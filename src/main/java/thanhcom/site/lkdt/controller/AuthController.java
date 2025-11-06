@@ -14,6 +14,7 @@ import thanhcom.site.lkdt.dto.request.CheckTokenRequest;
 import thanhcom.site.lkdt.dto.request.LoginRequest;
 import thanhcom.site.lkdt.dto.request.LogoutRequest;
 import thanhcom.site.lkdt.dto.request.TokenRefreshRequest;
+import thanhcom.site.lkdt.dto.response.TokenRefreshResponse;
 import thanhcom.site.lkdt.dto.response.TokenResponse;
 import thanhcom.site.lkdt.enums.SuccessCode;
 import thanhcom.site.lkdt.responseApi.ResponseApi;
@@ -31,7 +32,7 @@ public class AuthController {
     @PostMapping("/login")
     ResponseEntity<?> AccountCheck(@RequestBody @Validated LoginRequest loginRequest)
     {
-        TokenResponse login = authService.Login(loginRequest);
+        TokenResponse login = authService.authenticate(loginRequest);
         ResponseApi<TokenResponse> responseApi = new ResponseApi<>();
         responseApi.setData(login);
         responseApi.setResponseCode(1001);
@@ -44,7 +45,7 @@ public class AuthController {
     {
         ResponseApi<String> responseApi = new ResponseApi<>();
         try {
-            authService.LogOut(request);
+            authService.logout(request);
             responseApi.setResponseCode(1001);
             responseApi.setMessenger("Đăng xuất thành công");
         } catch (ParseException | JOSEException e) {
@@ -56,31 +57,26 @@ public class AuthController {
     @PostMapping("/refresh_token")
     ResponseEntity<?> refreshToken(@RequestBody @Validated TokenRefreshRequest request)
     {
-        ResponseApi<TokenResponse> responseApi = new ResponseApi<>();
+        ResponseApi<TokenRefreshResponse> responseApi = new ResponseApi<>();
         try {
-            responseApi.setData(authService.refresh_token(request));
+            responseApi.setData(authService.refreshToken(request));
             responseApi.setMessenger("Refresh Token Cusses !!!");
             responseApi.setResponseCode(1688);
-        } catch (JOSEException | ParseException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return ResponseEntity.ok(responseApi);
     }
 
     @PostMapping("/check_token")
-    ResponseEntity<?> Login(@RequestBody @Validated CheckTokenRequest request)
-    {
-        try {
+    ResponseEntity<?> Login(@RequestBody @Validated CheckTokenRequest request) throws ParseException, JOSEException {
             return ResponseEntity.ok(ResponseApi.builder()
                     .Messenger(SuccessCode.USER_LOGIN_OKE.getMessage())
                     .ResponseCode(SuccessCode.USER_LOGIN_OKE.getCode())
-                    .data(authService.CheckToken(request))
+                    .data(authService.introspect(request))
                     .ResponseCode(SuccessCode.TOKEN_CHECK_OK.getCode())
                     .Messenger(SuccessCode.TOKEN_CHECK_OK.getMessage())
                     .build());
-        } catch (JOSEException | ParseException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

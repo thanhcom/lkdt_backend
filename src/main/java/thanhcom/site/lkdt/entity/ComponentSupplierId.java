@@ -2,16 +2,17 @@ package thanhcom.site.lkdt.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.Hibernate;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor // ✅ thêm cái này để có constructor 2 tham số
 @Embeddable
+
 public class ComponentSupplierId implements Serializable {
     private static final long serialVersionUID = -3756161670109554391L;
     @Column(name = "component_id", nullable = false)

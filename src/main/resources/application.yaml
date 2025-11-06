@@ -6,7 +6,7 @@ server:
 jwt:
   signerKey : "cNXtAlDGLkUAYwQGg25BZzDm+YrV2MuO4halw14ucMD6tD4aE+laaFujVv4vk/SZJKMNMktf0rJB+F2al3bMFw=="
   signerKey_refresh : "aNXtAlDGLkUAYwQGg25BZzDm+YrV2MuO4halw14thMD6tD4aE+laaFujVv4vk/SZJKMNMktf0rJB+F2al3bMFw=="
-  token-time : 60 #MIN
+  token-time : 300 #MIN
   refresh-token-time : 30  #DAY
 
 spring:
