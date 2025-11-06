@@ -74,4 +74,14 @@ public class AccountController {
         responseApi.setMessenger("Lấy danh sách tài khoản thành công");
         return ResponseEntity.ok(responseApi);
     }
+
+    @GetMapping("/my-info")
+    public ResponseEntity<?> GetMyInfo() {
+        Account accountInfo = accountService.getMyAccountInfo();
+        ResponseApi<UserResponse> responseApi = new ResponseApi<>();
+        responseApi.setData(accountMapper.ResToDto(accountInfo));
+        responseApi.setResponseCode(2001);
+        responseApi.setMessenger("Lấy thông tin tài khoản thành công");
+        return ResponseEntity.ok(responseApi);
+    }
 }

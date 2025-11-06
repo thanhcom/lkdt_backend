@@ -5,9 +5,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import thanhcom.site.lkdt.dto.ComponentDetail;
 import thanhcom.site.lkdt.dto.request.ComponentCreateRequest;
 import thanhcom.site.lkdt.dto.request.SupplierPriceRequest;
 import thanhcom.site.lkdt.dto.response.ComponentSupplierResponse;
+import thanhcom.site.lkdt.dto.response.SupplierResponse;
 import thanhcom.site.lkdt.entity.Component;
 import thanhcom.site.lkdt.entity.ComponentSupplier;
 import thanhcom.site.lkdt.entity.ComponentSupplierId;
@@ -15,12 +17,15 @@ import thanhcom.site.lkdt.entity.Supplier;
 import thanhcom.site.lkdt.enums.ErrCode;
 import thanhcom.site.lkdt.exception.AppException;
 import thanhcom.site.lkdt.mapper.ComponentMapper;
+import thanhcom.site.lkdt.mapper.ComponentSupplierMapper;
+import thanhcom.site.lkdt.mapper.SupplierMapper;
 import thanhcom.site.lkdt.mapper.SupplierPriceMapper;
 import thanhcom.site.lkdt.repository.ComponentRepository;
 import thanhcom.site.lkdt.repository.ComponentSupplierRepository;
 import thanhcom.site.lkdt.repository.SupplierRepository;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,10 +34,16 @@ import java.util.List;
 @Transactional
 public class ComponentService {
     final ComponentMapper componentMapper;
+    final ComponentSupplierMapper componentSupplierMapper;
+    final SupplierPriceMapper supplierPriceMapper;
+    final SupplierMapper supplierMapper;
+
+
     final ComponentRepository componentRepository;
     final ComponentSupplierRepository componentSupplierRepository;
     final SupplierRepository supplierRepository;
-    final SupplierPriceMapper supplierPriceMapper;
+
+
 
     // 🔹 Lấy tất cả component
     public List<Component> getAllComponents() {
@@ -68,7 +79,7 @@ public class ComponentService {
 
     // 🔹 Thêm mới component
     public Component createComponent(ComponentCreateRequest request) {
-        List<ComponentSupplierResponse> supplierList = new java.util.ArrayList<>();
+        List<ComponentSupplierResponse> supplierList = new ArrayList<>();
         Component component = new Component();
         component.setName(request.getName());
         component.setType(request.getType());
@@ -143,4 +154,28 @@ public class ComponentService {
 
         componentRepository.delete(component);
     }
+
+    public ComponentDetail getComponentDetail(Long id) {
+        Component component = getComponentById(id);
+        List<SupplierResponse> suppliers = new ArrayList<>();
+        List<ComponentSupplierResponse> componentSuppliers = componentSupplierMapper.ResToEntityList(componentSupplierRepository.findAllByComponentId(id));
+        componentSuppliers.forEach(item -> {
+            suppliers.add(item.getSupplier());
+        });
+
+        return ComponentDetail.builder()
+                .name(component.getName())
+                .type(component.getType())
+                .specification(component.getSpecification())
+                .manufacturer(component.getManufacturer())
+                .packageField(component.getPackageField())
+                .unit(component.getUnit())
+                .stockQuantity(component.getStockQuantity())
+                .location(component.getLocation())
+                .createdAt(component.getCreatedAt())
+                .componentSuppliers(componentSuppliers)
+                .build();
+    }
+
+
 }

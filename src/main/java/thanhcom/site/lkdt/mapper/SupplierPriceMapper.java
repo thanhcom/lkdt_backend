@@ -10,6 +10,7 @@ import java.util.List;
 public interface SupplierPriceMapper {
     ComponentSupplierResponse toRequest(SupplierPriceRequest request);
     SupplierPriceRequest toResponse(ComponentSupplierResponse response);
+
     List<SupplierPriceRequest> toRequestList(List<ComponentSupplierResponse> responses);
     List<ComponentSupplierResponse> toResponseList(List<SupplierPriceRequest> requests);
 }

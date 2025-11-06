@@ -3,6 +3,7 @@
     import lombok.AccessLevel;
     import lombok.AllArgsConstructor;
     import lombok.experimental.FieldDefaults;
+    import org.springframework.security.access.prepost.PostAuthorize;
     import org.springframework.security.access.prepost.PreAuthorize;
     import org.springframework.stereotype.Service;
     import org.springframework.transaction.annotation.Transactional;
@@ -83,5 +84,13 @@
             String password = passEncode.getPasswordEncoder().encode(account.getPassword());
             account.setPassword(password);
             accountRepository.save(account);
+        }
+
+        // cách lọc chỉ trả về thông tin nếu trùng với thông tin mình đăng nhập
+        //@PostAuthorize("returnObject.username == authentication.name")
+        public Account getMyAccountInfo() {
+            String currentUsername = SecurityUtils.getCurrentUsername();
+            return accountRepository.findByUsername(currentUsername)
+                    .orElseThrow(() -> new AppException(ErrCode.USER_NOT_EXISTED));
         }
     }
