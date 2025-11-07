@@ -64,6 +64,19 @@ public class ComponentService {
                 .toList();
     }
 
+    // 🔹 Lọc theo nhà cung cấp
+    public List<Component> getComponentsBySupplier(Long supplierId) {
+        List<ComponentSupplier> componentSuppliers = componentSupplierRepository.findAllBySupplierId(supplierId);
+        List<Component> components = new ArrayList<>();
+        for (ComponentSupplier cs : componentSuppliers) {
+            components.add(cs.getComponent());
+        }
+        if (components.isEmpty()) {
+            throw new AppException(ErrCode.COMPONENT_NOTFOUND);
+        }
+        return components;
+    }
+
     // 🔹 Lọc theo tên
     public List<Component> getComponentsByName(String name) {
         return componentRepository.findAll().stream()

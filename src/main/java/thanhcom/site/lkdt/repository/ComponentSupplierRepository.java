@@ -14,4 +14,6 @@ public interface ComponentSupplierRepository extends JpaRepository<ComponentSupp
     void deleteByComponentId(@Param("componentId") Long componentId);
 
     List<ComponentSupplier> findAllByComponentId(Long componentId);
+
+    List<ComponentSupplier> findAllBySupplierId(Long supplierId);
 }

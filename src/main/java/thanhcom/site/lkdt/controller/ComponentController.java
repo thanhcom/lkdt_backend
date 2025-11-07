@@ -53,6 +53,16 @@ public class ComponentController {
         return ResponseEntity.ok(responseApi);
     }
 
+    @GetMapping("/supplier/{supplierId}")
+    public ResponseEntity<?> getComponentsBySupplier(@PathVariable Long supplierId) {
+        List<Component> components = componentService.getComponentsBySupplier(supplierId);
+        ResponseApi<List<ComponentResponse>> responseApi = new ResponseApi<>();
+        responseApi.setData(componentMapper.ResToDtoList(components));
+        responseApi.setResponseCode(2004);
+        responseApi.setMessenger("Lấy danh sách linh kiện theo nhà cung cấp thành công");
+        return ResponseEntity.ok(responseApi);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<?> createComponent(@Valid @RequestBody ComponentRequest componentRequest) {
         // Implementation for creating a new component

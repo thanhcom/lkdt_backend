@@ -40,7 +40,7 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
 
         ResponseApi<?> apiResponse = ResponseApi.builder()
                 .Messenger(msg)
-                .Author("Copyright 2025 thanhtrang.online")
+                .Author("Copyright 2025 thanhcom.site")
                 .ResponseCode(code)
                 .build();
 
