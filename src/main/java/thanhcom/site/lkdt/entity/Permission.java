@@ -26,7 +26,6 @@ public class Permission {
     private String name;
 
     @NotNull
-    @Lob
     @Column(name = "description", nullable = false)
     private String description;
 
