@@ -37,6 +37,9 @@ public enum ErrCode {
     //------SUPPLIER
     SUPPLIER_NOTFOUND(1601,"Supplier Not Found !!!",HttpStatus.NOT_FOUND),
 
+    //------PROJECT
+    PROJECT_NOT_FOUND(1701,"Project Not Found !!!",HttpStatus.NOT_FOUND),
+
     //------ROLE
     ROLE_NOTFOUND(1402,"Role Not Found !!!",HttpStatus.NOT_FOUND),
 
