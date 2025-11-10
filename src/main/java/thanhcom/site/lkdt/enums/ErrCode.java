@@ -40,6 +40,10 @@ public enum ErrCode {
     //------PROJECT
     PROJECT_NOT_FOUND(1701,"Project Not Found !!!",HttpStatus.NOT_FOUND),
 
+    //------TRANSACTION
+    TRANSACTION_NOT_FOUND(1801,"Transaction Not Found !!!",HttpStatus.NOT_FOUND),
+
+
     //------ROLE
     ROLE_NOTFOUND(1402,"Role Not Found !!!",HttpStatus.NOT_FOUND),
 

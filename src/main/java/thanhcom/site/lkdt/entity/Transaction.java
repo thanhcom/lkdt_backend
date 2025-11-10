@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import thanhcom.site.lkdt.enums.TransactionType;
 
 import java.time.OffsetDateTime;
 
@@ -25,7 +26,8 @@ public class Transaction {
     private Component component;
 
     @Column(name = "transaction_type", length = 10)
-    private String transactionType;
+    @Enumerated(EnumType.STRING)
+    private TransactionType transactionType;
 
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
@@ -41,5 +43,4 @@ public class Transaction {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "project_id")
     private Project project;
-
 }
