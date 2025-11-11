@@ -1,5 +1,6 @@
 package thanhcom.site.lkdt.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -19,6 +20,7 @@ import java.util.Set;
 @RestController
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE,makeFinal = true)
+@Tag(name = "User API", description = "API quản lý người dùng")
 @RequestMapping("/account")
 public class AccountController {
     AccountService accountService;

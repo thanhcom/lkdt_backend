@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import thanhcom.site.lkdt.exception.CustomAccessDeniedHandler;
+import thanhcom.site.lkdt.exception.JwtException;
 
 @Configuration
 @EnableWebSecurity
@@ -59,7 +60,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable);
 
         // ⚠️ Thêm filter custom để bắt lỗi TokenExpiredException / JwtException
-        http.addFilterBefore(new JwtExceptionFilter(), BearerTokenAuthenticationFilter.class);
+        http.addFilterBefore(new JwtException(), BearerTokenAuthenticationFilter.class);
 
         return http.build();
     }
