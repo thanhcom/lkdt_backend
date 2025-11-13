@@ -2,6 +2,7 @@ package thanhcom.site.lkdt.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
+import thanhcom.site.lkdt.dto.TransactionDto;
 
 import java.time.OffsetDateTime;
 
@@ -20,6 +21,4 @@ public class ComponentResponse {
     private Integer stockQuantity;
     private String location;
     private OffsetDateTime createdAt;
-    private List<ComponentSupplierResponse> suppliers;  // optional, tùy mày muốn trả về hay không
-    // 👇 Nếu có quan hệ với Supplier (nhiều nhà cung cấp)
 }

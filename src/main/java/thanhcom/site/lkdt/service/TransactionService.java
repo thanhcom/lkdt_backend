@@ -3,6 +3,9 @@ package thanhcom.site.lkdt.service;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import thanhcom.site.lkdt.entity.Component;
@@ -13,7 +16,9 @@ import thanhcom.site.lkdt.exception.AppException;
 import thanhcom.site.lkdt.repository.ComponentRepository;
 import thanhcom.site.lkdt.repository.ProjectRepository;
 import thanhcom.site.lkdt.repository.TransactionRepository;
+import thanhcom.site.lkdt.specification.TransactionSpecification;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Service
@@ -26,6 +31,27 @@ public class TransactionService {
     @Transactional(readOnly = true)
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findAll();
+    }
+
+    public Page<Transaction> searchTransactions(
+            Long componentId,
+            Long projectId,
+            String componentName,
+            String projectName,
+            String type,
+            OffsetDateTime start,
+            OffsetDateTime end,
+            int page,
+            int size
+    ) {
+        Specification<Transaction> spec = TransactionSpecification.hasComponentId(componentId)
+                .and(TransactionSpecification.hasProjectId(projectId))
+                .and(TransactionSpecification.hasComponentName(componentName))
+                .and(TransactionSpecification.hasProjectName(projectName))
+                .and(TransactionSpecification.hasTransactionType(type))
+                .and(TransactionSpecification.betweenDates(start, end));
+
+        return transactionRepository.findAll(spec, PageRequest.of(page, size));
     }
 
     @Transactional(readOnly = true)

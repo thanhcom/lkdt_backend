@@ -3,6 +3,9 @@ package thanhcom.site.lkdt.service;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import thanhcom.site.lkdt.dto.ComponentDetail;
@@ -23,7 +26,9 @@ import thanhcom.site.lkdt.mapper.SupplierPriceMapper;
 import thanhcom.site.lkdt.repository.ComponentRepository;
 import thanhcom.site.lkdt.repository.ComponentSupplierRepository;
 import thanhcom.site.lkdt.repository.SupplierRepository;
+import thanhcom.site.lkdt.specification.ComponentSpecification;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +53,14 @@ public class ComponentService {
     // 🔹 Lấy tất cả component
     public List<Component> getAllComponents() {
         return componentRepository.findAll();
+    }
+
+    // 🔹 Tìm kiếm nhiều điều kiện với phân trang
+    public Page<Component> searchComponents(String keyword, Long id, Integer stockQuantity, Pageable pageable) {
+        return componentRepository.findAll(
+                ComponentSpecification.filter(keyword, id, stockQuantity),
+                pageable
+        );
     }
 
     // 🔹 Lọc theo type

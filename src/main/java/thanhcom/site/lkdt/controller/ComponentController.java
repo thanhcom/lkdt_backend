@@ -4,19 +4,26 @@ import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import thanhcom.site.lkdt.dto.ComponentDetail;
+import thanhcom.site.lkdt.dto.TransactionDto;
 import thanhcom.site.lkdt.dto.request.ComponentCreateRequest;
 import thanhcom.site.lkdt.dto.request.ComponentRequest;
 import thanhcom.site.lkdt.dto.response.ComponentResponse;
 import thanhcom.site.lkdt.entity.Component;
 import thanhcom.site.lkdt.mapper.ComponentMapper;
 import thanhcom.site.lkdt.responseApi.ResponseApi;
+import thanhcom.site.lkdt.responseApi.ResponsePage;
 import thanhcom.site.lkdt.service.ComponentService;
 import thanhcom.site.lkdt.service.ComponentSupplierService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -34,6 +41,40 @@ public class ComponentController {
         responseApi.setMessenger("Lấy danh sách linh kiện thành công");
         return ResponseEntity.ok(responseApi);
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<?> searchComponent(
+            @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "id", required = false) Long id,
+            @RequestParam(value = "stockQuantity", required = false) Integer stockQuantity,
+            @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
+            @RequestParam(value = "pageSize", defaultValue = "20") int pageSize
+    ) {
+        ResponseApi<List<?>> responseApi = new ResponseApi<>();
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize);
+        Page<Component> page = componentService.searchComponents(keyword, id, stockQuantity, pageable);
+        // ✅ Convert Page<Entity> → Page<DTO>
+        Page<ComponentResponse> componentResponses = page.map(componentMapper::ResToDto);
+        responseApi.setData(componentResponses.getContent());
+        responseApi.setPageInfo(ResponsePage.builder()
+                .currentPage(pageNo)
+                .pageSize(page.getSize())
+                .totalPage(page.getTotalPages())
+                .totalElement(page.getTotalElements())
+                .isEmpty(page.isEmpty())
+                .isFirst(page.isFirst())
+                .isLast(page.isLast())
+                .hashCode(page.hashCode())
+                .sortInfo(page.getSort().toString())
+                .hasNext(page.hasNext())
+                .hasContent(page.hasContent())
+                .hasPrevious(page.hasPrevious())
+                .build()
+        );
+        return ResponseEntity.ok(responseApi);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<?>  getComponentById(@PathVariable Long id) {
         Component component = componentService.getComponentById(id);

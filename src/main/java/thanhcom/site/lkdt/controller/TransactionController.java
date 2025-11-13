@@ -3,6 +3,8 @@ package thanhcom.site.lkdt.controller;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import thanhcom.site.lkdt.dto.TransactionDto;
@@ -11,6 +13,7 @@ import thanhcom.site.lkdt.mapper.TransactionMapper;
 import thanhcom.site.lkdt.responseApi.ResponseApi;
 import thanhcom.site.lkdt.service.TransactionService;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @RestController
@@ -29,6 +32,32 @@ public class TransactionController {
     responseApi.setResponseCode(2000);
     responseApi.setMessenger("Lấy tất cả giao dịch thành công");
     return ResponseEntity.ok(responseApi);
+    }
+
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<TransactionDto>> searchTransactions(
+            @RequestParam(required = false) Long componentId,
+            @RequestParam(required = false) Long projectId,
+            @RequestParam(required = false) String componentName,
+            @RequestParam(required = false) String projectName,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime start,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        // 🔍 Gọi service thực hiện tìm kiếm
+        Page<Transaction> transactions = transactionService.searchTransactions(
+                componentId, projectId, componentName, projectName, type, start, end, page, size
+        );
+
+        // ✅ Convert Page<Entity> → Page<DTO>
+        Page<TransactionDto> transactionDtos = transactions.map(transactionMapper::ToEntity);
+
+        return ResponseEntity.ok(transactionDtos);
     }
 
     @GetMapping("/{id}")

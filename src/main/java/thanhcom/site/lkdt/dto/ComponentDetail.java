@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import thanhcom.site.lkdt.dto.response.ComponentSupplierResponse;
+import thanhcom.site.lkdt.entity.Transaction;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -24,5 +25,5 @@ public class ComponentDetail {
     private Integer stockQuantity;
     private String location;
     private OffsetDateTime createdAt;
-    List<ComponentSupplierResponse> componentSuppliers;
+    private List<ComponentSupplierResponse> componentSuppliers;
 }
