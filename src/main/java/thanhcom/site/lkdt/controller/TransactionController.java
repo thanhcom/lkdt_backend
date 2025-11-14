@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import thanhcom.site.lkdt.dto.TransactionDto;
 import thanhcom.site.lkdt.entity.Transaction;
 import thanhcom.site.lkdt.mapper.TransactionMapper;
 import thanhcom.site.lkdt.responseApi.ResponseApi;
+import thanhcom.site.lkdt.responseApi.ResponsePage;
 import thanhcom.site.lkdt.service.TransactionService;
 
 import java.time.OffsetDateTime;
@@ -36,28 +38,79 @@ public class TransactionController {
 
 
     @GetMapping("/search")
-    public ResponseEntity<Page<TransactionDto>> searchTransactions(
-            @RequestParam(required = false) Long componentId,
-            @RequestParam(required = false) Long projectId,
-            @RequestParam(required = false) String componentName,
-            @RequestParam(required = false) String projectName,
-            @RequestParam(required = false) String type,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime start,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size
+    public ResponseEntity<?> searchTransactions(
+            @RequestParam(value = "componentId", required = false) Long componentId,
+            @RequestParam(value = "componentName", required = false) String componentName,
+            @RequestParam(value = "projectId", required = false) Long projectId,
+            @RequestParam(value = "projectName", required = false) String projectName,
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "start", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime start,
+            @RequestParam(value = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end,
+            Pageable pageable
     ) {
-        // 🔍 Gọi service thực hiện tìm kiếm
-        Page<Transaction> transactions = transactionService.searchTransactions(
-                componentId, projectId, componentName, projectName, type, start, end, page, size
+        ResponseApi<List<?>> responseApi = new ResponseApi<>();
+        Page<Transaction> page = transactionService.searchTransactions(
+                componentId, projectId, componentName, projectName, type, start, end, pageable
+        );
+        // ✅ Convert Page<Entity> → Page<DTO>
+        Page<TransactionDto> componentResponses = page.map(transactionMapper::ToEntity);
+        int pageNo = page.getNumber() + 1; // Chuyển từ 0-based sang 1-based
+        responseApi.setData(componentResponses.getContent());
+        responseApi.setPageInfo(ResponsePage.builder()
+                .currentPage(pageNo)
+                .pageSize(page.getSize())
+                .totalPage(page.getTotalPages())
+                .totalElement(page.getTotalElements())
+                .isEmpty(page.isEmpty())
+                .isFirst(page.isFirst())
+                .isLast(page.isLast())
+                .hashCode(page.hashCode())
+                .sortInfo(page.getSort().toString())
+                .hasNext(page.hasNext())
+                .hasContent(page.hasContent())
+                .hasPrevious(page.hasPrevious())
+                .build()
         );
 
-        // ✅ Convert Page<Entity> → Page<DTO>
-        Page<TransactionDto> transactionDtos = transactions.map(transactionMapper::ToEntity);
+        return ResponseEntity.ok(responseApi);
+    }
 
-        return ResponseEntity.ok(transactionDtos);
+    @GetMapping("/search1")
+    public ResponseEntity<?> searchTransactions1(
+            @RequestParam(value = "componentId", required = false) Long componentId,
+            @RequestParam(value = "componentName", required = false) String componentName,
+            @RequestParam(value = "projectId", required = false) Long projectId,
+            @RequestParam(value = "projectName", required = false) String projectName,
+            @RequestParam(value = "type", required = false) String type,
+            @RequestParam(value = "start", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime start,
+            @RequestParam(value = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime end,
+            Pageable pageable
+    ) {
+        ResponseApi<List<?>> responseApi = new ResponseApi<>();
+        Page<Transaction> page = transactionService.searchTransactions(
+                componentId, projectId, componentName, projectName, type, start, end, pageable
+        );
+        // ✅ Convert Page<Entity> → Page<DTO>
+        Page<TransactionDto> componentResponses = page.map(transactionMapper::ToEntity);
+        int pageNo = page.getNumber() + 1; // Chuyển từ 0-based sang 1-based
+        responseApi.setData(componentResponses.getContent());
+        responseApi.setPageInfo(ResponsePage.builder()
+                .currentPage(pageNo)
+                .pageSize(page.getSize())
+                .totalPage(page.getTotalPages())
+                .totalElement(page.getTotalElements())
+                .isEmpty(page.isEmpty())
+                .isFirst(page.isFirst())
+                .isLast(page.isLast())
+                .hashCode(page.hashCode())
+                .sortInfo(page.getSort().toString())
+                .hasNext(page.hasNext())
+                .hasContent(page.hasContent())
+                .hasPrevious(page.hasPrevious())
+                .build()
+        );
+
+        return ResponseEntity.ok(responseApi);
     }
 
     @GetMapping("/{id}")

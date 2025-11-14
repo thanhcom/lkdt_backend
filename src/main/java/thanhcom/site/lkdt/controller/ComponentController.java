@@ -7,6 +7,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import thanhcom.site.lkdt.dto.ComponentDetail;
@@ -44,21 +45,18 @@ public class ComponentController {
 
     @GetMapping("/search")
     public ResponseEntity<?> searchComponent(
-            @RequestParam(value = "keyword", required = false) String keyword,
-            @RequestParam(value = "id", required = false) Long id,
-            @RequestParam(value = "stockQuantity", required = false) Integer stockQuantity,
-            @RequestParam(value = "pageNo", defaultValue = "0") int pageNo,
-            @RequestParam(value = "pageSize", defaultValue = "20") int pageSize
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) Integer stockQuantity,
+            Pageable pageable
     ) {
         ResponseApi<List<?>> responseApi = new ResponseApi<>();
-
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Component> page = componentService.searchComponents(keyword, id, stockQuantity, pageable);
         // ✅ Convert Page<Entity> → Page<DTO>
         Page<ComponentResponse> componentResponses = page.map(componentMapper::ResToDto);
         responseApi.setData(componentResponses.getContent());
         responseApi.setPageInfo(ResponsePage.builder()
-                .currentPage(pageNo)
+                .currentPage(page.getNumber()+1)
                 .pageSize(page.getSize())
                 .totalPage(page.getTotalPages())
                 .totalElement(page.getTotalElements())

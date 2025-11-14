@@ -4,9 +4,14 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import thanhcom.site.lkdt.entity.Supplier;
 import thanhcom.site.lkdt.repository.SupplierRepository;
+import thanhcom.site.lkdt.specification.SupplierSpecification;
+
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -19,6 +24,14 @@ public class SupplierService {
         // Logic to create and save a new supplier
         supplierRepository.save(supplier);
         return supplier;
+    }
+
+    // 🔹 Tìm kiếm nhiều điều kiện với phân trang
+    public Page<Supplier> searchSuppliers(String keyword, Long id,Pageable pageable) {
+        return supplierRepository.findAll(
+                SupplierSpecification.filter(keyword, id),
+                pageable
+        );
     }
 
     public Supplier getSupplierById(Long id) {
@@ -43,4 +56,7 @@ public class SupplierService {
         supplierRepository.deleteById(id);
     }
 
+    public List<Supplier> GetSuppliers() {
+        return supplierRepository.findAll();
+    }
 }

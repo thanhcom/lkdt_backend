@@ -43,14 +43,15 @@ public enum ErrCode {
     //------TRANSACTION
     TRANSACTION_NOT_FOUND(1801,"Transaction Not Found !!!",HttpStatus.NOT_FOUND),
 
-
+    //------SUPPLIER
+    SUPPLIER_NOT_FOUND(1601,"Supplier Not Found !!!",HttpStatus.NOT_FOUND),
     //------ROLE
     ROLE_NOTFOUND(1402,"Role Not Found !!!",HttpStatus.NOT_FOUND),
 
     UNAUTHORIZED(9999,"Warning !!! UNAUTHORIZED",HttpStatus.UNAUTHORIZED),
     UNAUTHENTICATED(9998,"Warning !!! UNAUTHENTICATED",HttpStatus.FORBIDDEN),
-    INVALID_KEY(9999,"Warning !!! Check and Changer field message valid in ENUM define ",HttpStatus.NOT_ACCEPTABLE)
-    ;
+    INVALID_KEY(9999,"Warning !!! Check and Changer field message valid in ENUM define ",HttpStatus.NOT_ACCEPTABLE);
+
     private final int code;
     private final String Message;
     private final HttpStatus statusCode;

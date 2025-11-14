@@ -4,7 +4,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +12,7 @@ import thanhcom.site.lkdt.entity.Component;
 import thanhcom.site.lkdt.entity.Project;
 import thanhcom.site.lkdt.entity.Transaction;
 import thanhcom.site.lkdt.enums.ErrCode;
+import thanhcom.site.lkdt.enums.TransactionType;
 import thanhcom.site.lkdt.exception.AppException;
 import thanhcom.site.lkdt.repository.ComponentRepository;
 import thanhcom.site.lkdt.repository.ProjectRepository;
@@ -41,8 +42,7 @@ public class TransactionService {
             String type,
             OffsetDateTime start,
             OffsetDateTime end,
-            int page,
-            int size
+            Pageable pageable
     ) {
         Specification<Transaction> spec = TransactionSpecification.hasComponentId(componentId)
                 .and(TransactionSpecification.hasProjectId(projectId))
@@ -51,7 +51,39 @@ public class TransactionService {
                 .and(TransactionSpecification.hasTransactionType(type))
                 .and(TransactionSpecification.betweenDates(start, end));
 
-        return transactionRepository.findAll(spec, PageRequest.of(page, size));
+        return transactionRepository.findAll(spec,pageable);
+    }
+
+    public Page<Transaction> searchTransactions1(
+            Long componentId,
+            Long projectId,
+            String componentName,
+            String projectName,
+            String type,
+            OffsetDateTime start,
+            OffsetDateTime end,
+            Pageable pageable
+    ) {
+        TransactionType enumType = null;
+
+        if (type != null && !type.isEmpty()) {
+            try {
+                enumType = TransactionType.valueOf(type.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // type không hợp lệ => bỏ lọc
+            }
+        }
+
+        return transactionRepository.searchTransactions(
+                componentId,
+                componentName,
+                projectId,
+                projectName,
+                enumType,
+                start,
+                end,
+                pageable
+        );
     }
 
     @Transactional(readOnly = true)

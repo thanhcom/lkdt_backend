@@ -47,6 +47,11 @@ GET /transactions/search?projectName=Dự%20án%20A&type=IMPORT&start=2025-11-01
 ```
 GET /transactions/search?componentName=IC%20555&projectId=3
 ```
+4. **Tìm transaction và sắp sếp theo component ID 3**
+
+```
+GET /transactions/search?sort=componentId,desc
+```
 
 ---
 

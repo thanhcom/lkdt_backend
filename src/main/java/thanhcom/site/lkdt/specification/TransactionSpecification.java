@@ -7,6 +7,8 @@ import thanhcom.site.lkdt.entity.Transaction;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import thanhcom.site.lkdt.enums.TransactionType;
+
 import java.time.OffsetDateTime;
 
 public class TransactionSpecification {
@@ -61,7 +63,13 @@ public class TransactionSpecification {
     public static Specification<Transaction> hasTransactionType(String type) {
         return (root, query, cb) -> {
             if (type == null || type.isEmpty()) return null;
-            return cb.equal(root.get("transactionType").as(String.class), type);
+
+            try {
+                TransactionType enumType = TransactionType.valueOf(type.toUpperCase());
+                return cb.equal(root.get("transactionType"), enumType);
+            } catch (IllegalArgumentException e) {
+                return null; // type không hợp lệ thì bỏ luôn filter
+            }
         };
     }
 

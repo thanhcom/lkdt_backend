@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +11,7 @@ import thanhcom.site.lkdt.dto.ComponentDetail;
 import thanhcom.site.lkdt.dto.request.ComponentCreateRequest;
 import thanhcom.site.lkdt.dto.request.SupplierPriceRequest;
 import thanhcom.site.lkdt.dto.response.ComponentSupplierResponse;
-import thanhcom.site.lkdt.dto.response.SupplierResponse;
+import thanhcom.site.lkdt.dto.SupplierDto;
 import thanhcom.site.lkdt.entity.Component;
 import thanhcom.site.lkdt.entity.ComponentSupplier;
 import thanhcom.site.lkdt.entity.ComponentSupplierId;
@@ -28,7 +27,6 @@ import thanhcom.site.lkdt.repository.ComponentSupplierRepository;
 import thanhcom.site.lkdt.repository.SupplierRepository;
 import thanhcom.site.lkdt.specification.ComponentSpecification;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -183,7 +181,7 @@ public class ComponentService {
 
     public ComponentDetail getComponentDetail(Long id) {
         Component component = getComponentById(id);
-        List<SupplierResponse> suppliers = new ArrayList<>();
+        List<SupplierDto> suppliers = new ArrayList<>();
         List<ComponentSupplierResponse> componentSuppliers = componentSupplierMapper.ResToEntityList(componentSupplierRepository.findAllByComponentId(id));
         componentSuppliers.forEach(item -> {
             suppliers.add(item.getSupplier());
