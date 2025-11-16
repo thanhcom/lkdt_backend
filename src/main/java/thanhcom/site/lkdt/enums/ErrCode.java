@@ -3,6 +3,8 @@ package thanhcom.site.lkdt.enums;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
+import javax.tools.Diagnostic;
+
 @Getter
 public enum ErrCode {
     //--------USER
@@ -48,9 +50,16 @@ public enum ErrCode {
     //------ROLE
     ROLE_NOTFOUND(1402,"Role Not Found !!!",HttpStatus.NOT_FOUND),
 
+    //------MODBUS TCP
+    MODBUS_CONNECTION_FAILED(2001,"Modbus TCP Connection Failed !!!",HttpStatus.SERVICE_UNAVAILABLE),
+    MODBUS_READ_ERROR(2002,"Modbus TCP Read Error !!!",HttpStatus.BAD_GATEWAY),
+    MODBUS_WRITE_ERROR(2003,"Modbus TCP Write Error !!!",HttpStatus.BAD_GATEWAY),
+
+
     UNAUTHORIZED(9999,"Warning !!! UNAUTHORIZED",HttpStatus.UNAUTHORIZED),
     UNAUTHENTICATED(9998,"Warning !!! UNAUTHENTICATED",HttpStatus.FORBIDDEN),
     INVALID_KEY(9999,"Warning !!! Check and Changer field message valid in ENUM define ",HttpStatus.NOT_ACCEPTABLE);
+
 
     private final int code;
     private final String Message;

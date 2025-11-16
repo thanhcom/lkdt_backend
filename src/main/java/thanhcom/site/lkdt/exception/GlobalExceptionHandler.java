@@ -12,6 +12,7 @@ import thanhcom.site.lkdt.enums.ErrCode;
 import thanhcom.site.lkdt.responseApi.ResponseApi;
 
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -77,6 +78,15 @@ public class GlobalExceptionHandler {
         response.setResponseCode(ex.getErrCode().getCode());
         response.setMessenger(ex.getMessage());
         return new ResponseEntity<>(response, ex.getErrCode().getStatusCode());
+    }
+
+    //
+    @ExceptionHandler(TimeoutException.class)
+    public ResponseEntity<ResponseApi<?>> handleAppTimeoutException(TimeoutException ex) {
+        ResponseApi<Void> response = new ResponseApi<>();
+        response.setResponseCode(ErrCode.MODBUS_CONNECTION_FAILED.getCode());
+        response.setMessenger(ErrCode.MODBUS_CONNECTION_FAILED.getMessage());
+        return new ResponseEntity<>(response, ErrCode.MODBUS_CONNECTION_FAILED.getStatusCode());
     }
 
     // =======================================================
