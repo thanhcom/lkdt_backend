@@ -1,0 +1,27 @@
+server:
+  port: 8084
+  servlet:
+    context-path: /
+jwt:
+  signerKey: ${JWT_SIGNER_KEY}
+  signerKey_refresh: ${JWT_SIGNER_KEY_REFRESH}
+  token-time: ${JWT_TOKEN_TIME:300}           # default 300 phút
+  refresh-token-time: ${JWT_REFRESH_TOKEN_TIME:30} # default 30 ngày
+spring:
+  application:
+    name: lkdt
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
+    driverClassName: org.postgresql.Driver
+    password: ${DB_USERNAME:postgres}
+    username: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
