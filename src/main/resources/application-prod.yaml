@@ -11,10 +11,10 @@ spring:
   application:
     name: lkdt
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/postgres}
+    url: ${DB_URL:jdbc:postgresql://100.114.136.16:5433/postgres}
     driverClassName: org.postgresql.Driver
-    password: ${DB_USERNAME:postgres}
-    username: ${DB_PASSWORD:postgres}
+    password: ${DB_PASSWORD:supabase_admin}
+    username: ${DB_USERNAME:laodaicaha}
   jpa:
     hibernate:
       ddl-auto: update

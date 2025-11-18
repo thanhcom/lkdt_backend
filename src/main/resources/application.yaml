@@ -5,7 +5,7 @@ server:
 
 jwt:
   signerKey : "cNXtAlDGLkUAYwQGg25BZzDm+YrV2MuO4halw14ucMD6tD4aE+laaFujVv4vk/SZJKMNMktf0rJB+F2al3bMFw=="
-  signerKey_refresh : "aNXtAlDGLkUAYwQGg25BZzDm+YrV2MuO4halw14thMD6tD4aE+laaFujVv4vk/SZJKMNMktf0rJB+F2al3bMFw=="
+  signerKey_refresh : "bF6vWkU+8xvZcKkZ+u3sP1xYdI9wA2mQ0aH5jOqF9nJvL1sR0tQfH2y8KpZtVmBxX7o4YdPeL1wT3jK8vH9uJg=="
   token-time : 300 #MIN
   refresh-token-time : 30  #DAY
 

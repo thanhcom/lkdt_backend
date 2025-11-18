@@ -15,7 +15,7 @@ public class SupplierSpecification {
      */
     public static Specification<Supplier> quickSearch(String keyword) {
         return (root, query, criteriaBuilder) -> {
-            if (keyword == null || keyword.isEmpty()) {
+            if (!(keyword != null && !keyword.isEmpty())) {
                 return criteriaBuilder.conjunction(); // trả về tất cả nếu không có keyword
             }
 
@@ -39,7 +39,7 @@ public class SupplierSpecification {
             Long id
     ) {
         return (root, query, criteriaBuilder) -> {
-            List<Predicate> predicates = new ArrayList<>();
+            ArrayList<Predicate> predicates = new ArrayList<>();
 
             // Quick search
             if (keyword != null && !keyword.isEmpty()) {

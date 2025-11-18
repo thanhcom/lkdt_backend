@@ -47,6 +47,7 @@ public class AuthService {
     @NonFinal
     @Value("${jwt.signerKey}")
     protected String SIGNER_KEY;
+
     @NonFinal
     @Value("${jwt.signerKey_refresh}")
     protected String SIGNER_KEY1;
