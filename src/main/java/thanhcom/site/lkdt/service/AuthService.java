@@ -144,6 +144,7 @@ public class AuthService {
                         Instant.now().plus(VALID_DURATION, ChronoUnit.MINUTES)
                 ))
                 .jwtID(jwt_id)
+                .claim("type","token")
                 .claim("scope", buildScope(user))
                 .build();
 
@@ -162,14 +163,14 @@ public class AuthService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject("refresh token")   // giữ nguyên flow cũ
+                .subject(user.getUsername())
                 .issuer("thanhcom.site")
                 .issueTime(new Date())
                 .expirationTime(Date.from(
                         Instant.now().plus(REFRESHABLE_DURATION, ChronoUnit.DAYS)
                 ))
                 .jwtID(jwt_id)
-                .claim("name", user.getUsername())
+                .claim("type","refresh token")
                 .build();
 
         JWSObject jwsObject = new JWSObject(header, new Payload(claimsSet.toJSONObject()));
