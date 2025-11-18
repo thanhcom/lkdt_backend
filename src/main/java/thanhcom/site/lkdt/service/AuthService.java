@@ -47,6 +47,9 @@ public class AuthService {
     @NonFinal
     @Value("${jwt.signerKey}")
     protected String SIGNER_KEY;
+    @NonFinal
+    @Value("${jwt.signerKey_refresh}")
+    protected String SIGNER_KEY1;
 
     @NonFinal
     @Value("${jwt.token-time}")
@@ -71,6 +74,7 @@ public class AuthService {
 
     public TokenResponse authenticate(LoginRequest request) {
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        String jwt_id = UUID.randomUUID().toString();
         var user = userRepository
                 .findByUsername(request.getUsername())
                 .orElseThrow(() -> new AppException(ErrCode.USER_NOT_EXISTED));
@@ -79,8 +83,8 @@ public class AuthService {
 
         if (!authenticated) throw new AppException(ErrCode.UNAUTHENTICATED);
 
-        var token = generateToken(user);
-        var refreshToken = generateToken(user);
+        var token = generateToken(user,jwt_id);
+        var refreshToken = generatorRefreshToken(user,jwt_id);
 
         return TokenResponse.builder().token(token)
                 .refresh_token(refreshToken)
@@ -123,26 +127,27 @@ public class AuthService {
         var user =
                 userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrCode.UNAUTHENTICATED));
 
-        var token = generateToken(user);
+        var token = generateToken(user,jit);
 
         return TokenRefreshResponse.builder().refresh_token(token).authenticated(true).build();
     }
 
-    private String generateToken(Account user) {
+
+    private String generateToken(Account user, String jwt_id) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getUsername())
                 .issuer("thanhcom.site")
                 .issueTime(new Date())
-                .expirationTime(new Date(
-                        Instant.now().plus(VALID_DURATION, ChronoUnit.MINUTES).toEpochMilli()))
-                .jwtID(UUID.randomUUID().toString())
+                .expirationTime(Date.from(
+                        Instant.now().plus(VALID_DURATION, ChronoUnit.MINUTES)
+                ))
+                .jwtID(jwt_id)
                 .claim("scope", buildScope(user))
                 .build();
 
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-
-        JWSObject jwsObject = new JWSObject(header, payload);
+        JWSObject jwsObject = new JWSObject(header, new Payload(jwtClaimsSet.toJSONObject()));
 
         try {
             jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
@@ -153,26 +158,53 @@ public class AuthService {
         }
     }
 
-    private SignedJWT verifyToken(String token, boolean isRefresh) throws JOSEException, ParseException {
-        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+    private String generatorRefreshToken(Account user, String jwt_id) {
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject("refresh token")   // giữ nguyên flow cũ
+                .issuer("thanhcom.site")
+                .issueTime(new Date())
+                .expirationTime(Date.from(
+                        Instant.now().plus(REFRESHABLE_DURATION, ChronoUnit.DAYS)
+                ))
+                .jwtID(jwt_id)
+                .claim("name", user.getUsername())
+                .build();
+
+        JWSObject jwsObject = new JWSObject(header, new Payload(claimsSet.toJSONObject()));
+
+        try {
+            jwsObject.sign(new MACSigner(SIGNER_KEY1.getBytes()));
+            return jwsObject.serialize();
+        } catch (JOSEException e) {
+            log.error("Cannot create refresh token", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+
+
+
+    private SignedJWT verifyToken(String token,boolean refresh_token) throws JOSEException, ParseException {
+        JWSVerifier verifier;
+        if(!refresh_token) {
+            verifier = new MACVerifier(SIGNER_KEY.getBytes());
+        }else {
+            verifier = new MACVerifier(SIGNER_KEY1.getBytes());
+        }
 
         SignedJWT signedJWT = SignedJWT.parse(token);
 
-        Date expiryTime = (isRefresh)
-                ? new Date(signedJWT
-                .getJWTClaimsSet()
-                .getIssueTime()
-                .toInstant()
-                .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
-                .toEpochMilli())
-                : signedJWT.getJWTClaimsSet().getExpirationTime();
+        Date expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
 
         var verified = signedJWT.verify(verifier);
 
-        if (!(verified && expiryTime.after(new Date()))) throw new TokenExpiredException("TOKEN_EXPIRED");;
+        if (!(verified && expiryTime.after(new Date())))
+            throw new TokenExpiredException("TOKEN_EXPIRED");
 
         if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
-            throw new AppException(ErrCode.UNAUTHENTICATED);
+            throw new AppException(ErrCode.UNAUTHORIZED);
 
         return signedJWT;
     }
