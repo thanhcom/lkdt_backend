@@ -4,10 +4,13 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -30,13 +33,14 @@ public class ComponentSchematic {
     @Column(name = "schematic_file")
     private String schematicFile;
 
-    @Column(name = "schematic_image")
-    private byte[] schematicImage;
+    @Lob
+    @Column(name = "schematic_image", columnDefinition = "TEXT")
+    private String schematicImage; // lưu "url1,url2,url3"
 
     @Column(name = "description", length = Integer.MAX_VALUE)
     private String description;
 
-    @ColumnDefault("now()")
+    @CreationTimestamp
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
 

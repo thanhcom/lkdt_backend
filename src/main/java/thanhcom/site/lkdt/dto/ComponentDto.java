@@ -15,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ComponentDto {
+    private Long id;
     private String name;
     private String type;
     private String specification;

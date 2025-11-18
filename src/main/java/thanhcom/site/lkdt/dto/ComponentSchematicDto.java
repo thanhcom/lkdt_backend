@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -12,9 +13,10 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class ComponentSchematicDto {
     private Long id;
+    private  ComponentDto component;
     private String schematicName;
     private String schematicFile;
-    private byte[] schematicImage;
+    private List<String> schematicImages; // List URL ảnh
     private String description;
     private OffsetDateTime createdAt;
 }

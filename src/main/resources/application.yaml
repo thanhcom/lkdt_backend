@@ -27,3 +27,16 @@ spring:
     basename: messages
     encoding: UTF-8
     fallback-to-system-locale: false
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
+
+
+
+
+cloudinary:
+  cloud_name: ${CLOUDINARY_CLOUD_NAME:dlfnluzp0}
+  api_key: ${CLOUDINARY_API_KEY:772959174448354}
+  api_secret: ${CLOUDINARY_API_SECRET:MhnxRjkGra60LhTFKXWHtUojaT8}
+  upload_folder: ${CLOUDINARY_UPLOAD_FOLDER:thanhcom-uploads}

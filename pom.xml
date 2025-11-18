@@ -86,6 +86,12 @@
             <scope>test</scope>
         </dependency>
 
+        <!--cloudinary-->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http5</artifactId>
+            <version>2.3.2</version>
+        </dependency>
 
 
         <!-- swagger -->

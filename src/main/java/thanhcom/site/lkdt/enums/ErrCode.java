@@ -3,8 +3,6 @@ package thanhcom.site.lkdt.enums;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
-import javax.tools.Diagnostic;
-
 @Getter
 public enum ErrCode {
     //--------USER
@@ -58,8 +56,10 @@ public enum ErrCode {
 
     UNAUTHORIZED(9999,"Warning !!! UNAUTHORIZED",HttpStatus.UNAUTHORIZED),
     UNAUTHENTICATED(9998,"Warning !!! UNAUTHENTICATED",HttpStatus.FORBIDDEN),
-    INVALID_KEY(9999,"Warning !!! Check and Changer field message valid in ENUM define ",HttpStatus.NOT_ACCEPTABLE);
-
+    INVALID_KEY(9999,"Warning !!! Check and Changer field message valid in ENUM define ",HttpStatus.NOT_ACCEPTABLE),
+    //--------Upload File
+    CREATE_COMPONENT_SCHEMATIC_FAIL(2100,"Create Component Schematic Fail !!!",HttpStatus.INTERNAL_SERVER_ERROR),
+    UPDATE_COMPONENT_SCHEMATIC_FAIL(2101,"Update Component Schematic Fail !!!",HttpStatus.INTERNAL_SERVER_ERROR);
 
     private final int code;
     private final String Message;

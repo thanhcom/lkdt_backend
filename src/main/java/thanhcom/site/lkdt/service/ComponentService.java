@@ -36,11 +36,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @Transactional
 public class ComponentService {
-     ComponentMapper componentMapper;
      ComponentSupplierMapper componentSupplierMapper;
-     SupplierPriceMapper supplierPriceMapper;
-     SupplierMapper supplierMapper;
-
      ComponentRepository componentRepository;
      ComponentSupplierRepository componentSupplierRepository;
      SupplierRepository supplierRepository;
