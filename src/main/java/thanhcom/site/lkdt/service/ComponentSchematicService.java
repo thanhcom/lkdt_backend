@@ -9,11 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import thanhcom.site.lkdt.entity.Component;
 import thanhcom.site.lkdt.entity.ComponentSchematic;
+import thanhcom.site.lkdt.enums.ErrCode;
+import thanhcom.site.lkdt.exception.AppException;
 import thanhcom.site.lkdt.repository.ComponentSchematicRepository;
 import thanhcom.site.lkdt.dto.response.UploadResponse;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -79,10 +80,72 @@ public class ComponentSchematicService {
         return urls;
     }
 
+    // ================= EDIT  =================
+    @Transactional
+    public ComponentSchematic updateComponentSchematic(
+            Long id,
+            Long componentId,
+            String schematicName,
+            MultipartFile schematicFile,
+            List<MultipartFile> schematicImages,
+            String description
+    ){
+
+        ComponentSchematic schematic = getById(id);
+
+        // Update componentId (nếu gửi lên)
+        if (componentId != null) {
+            Component newComponent = componentService.getComponentById(componentId);
+            schematic.setComponent(newComponent);
+        }
+
+        // Update text
+        if (schematicName != null) {
+            schematic.setSchematicName(schematicName);
+        }
+
+        if (description != null) {
+            schematic.setDescription(description);
+        }
+
+        // Update PDF/ZIP
+        if (schematicFile != null && !schematicFile.isEmpty()) {
+            // Xóa file cũ
+            deleteFile(schematic.getSchematicFile());
+
+            // Upload file mới
+            String newFileUrl;
+            try {
+                newFileUrl = uploadFile(schematicFile);
+            } catch (Exception e) {
+                throw new AppException(ErrCode.UPDATE_COMPONENT_SCHEMATIC_FAIL);
+            }
+            schematic.setSchematicFile(newFileUrl);
+        }
+
+        // Update images
+        if (schematicImages != null && !schematicImages.isEmpty()) {
+            // Xóa ảnh cũ
+            deleteImages(schematic.getSchematicImage());
+
+            // Upload ảnh mới
+            List<String> newImages;
+            try {
+                newImages = uploadImages(schematicImages);
+            } catch (Exception e) {
+                throw new AppException(ErrCode.UPDATE_COMPONENT_SCHEMATIC_FAIL);
+            }
+            schematic.setSchematicImage(String.join(",", newImages));
+        }
+
+        return componentSchematicRepository.save(schematic);
+    }
+
+
     // ================= READ =================
     public ComponentSchematic getById(Long id) {
         return componentSchematicRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("ComponentSchematic not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrCode.COMPONENT_SCHEMATIC_NOTFOUND));
     }
 
     public List<ComponentSchematic> getAll() {
@@ -105,6 +168,7 @@ public class ComponentSchematicService {
         if (fileUrl == null || fileUrl.isBlank()) return;
         try {
             cloudinaryService.delete(extractPublicId(fileUrl));
+            log.info("Deleted File : {} ", extractPublicId(fileUrl));
         } catch (Exception e) {
             log.warn("Failed to delete file on Cloudinary: {}", fileUrl, e);
         }
@@ -112,14 +176,31 @@ public class ComponentSchematicService {
 
     private void deleteImages(String imagesCsv) {
         if (imagesCsv == null || imagesCsv.isBlank()) return;
-        List<String> urls = Arrays.asList(imagesCsv.split(","));
-        for (String url : urls) deleteFile(url);
+        String[] urls = imagesCsv.split(",");
+        for (String url : urls) {
+            deleteFile(url);
+            log.info("Deleted Image  : {} ", extractPublicId(url));
+        }
     }
 
     public String extractPublicId(String url) {
         if (url == null || url.isBlank()) return "";
-        String[] parts = url.split("/");
-        String last = parts[parts.length - 1];
-        return last.contains(".") ? last.substring(0, last.lastIndexOf('.')) : last;
+
+        try {
+            String withoutParams = url.split("\\?")[0];
+            String[] parts = withoutParams.split("/upload/");
+            if (parts.length < 2) return "";
+
+            String afterUpload = parts[1]; // v123456/somefolder/file.pdf
+            String[] parts2 = afterUpload.split("/", 2);
+            if (parts2.length < 2) return "";
+
+            String path = parts2[1]; // somefolder/file.pdf
+
+            return path.substring(0, path.lastIndexOf('.')); // bỏ .pdf / .png
+        } catch (Exception e) {
+            return "";
+        }
     }
+
 }

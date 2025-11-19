@@ -59,7 +59,8 @@ public enum ErrCode {
     INVALID_KEY(9999,"Warning !!! Check and Changer field message valid in ENUM define ",HttpStatus.NOT_ACCEPTABLE),
     //--------Upload File
     CREATE_COMPONENT_SCHEMATIC_FAIL(2100,"Create Component Schematic Fail !!!",HttpStatus.INTERNAL_SERVER_ERROR),
-    UPDATE_COMPONENT_SCHEMATIC_FAIL(2101,"Update Component Schematic Fail !!!",HttpStatus.INTERNAL_SERVER_ERROR);
+    UPDATE_COMPONENT_SCHEMATIC_FAIL(2101,"Update Component Schematic Fail !!!",HttpStatus.INTERNAL_SERVER_ERROR),
+    COMPONENT_SCHEMATIC_NOTFOUND(2102,"Component Schematic Not Found !!!",HttpStatus.NOT_FOUND);
 
     private final int code;
     private final String Message;
