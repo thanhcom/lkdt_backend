@@ -48,8 +48,8 @@ cloudinary:
   upload_folder: ${CLOUDINARY_UPLOAD_FOLDER:thanhcom-uploads}
 
 brevo:
-  api-key: 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
+  api-key: ${BREVO_API_KEY}
   sender:
-    email: anhchang00@gmail.com
-    name: LKDT App
+    email: ${BREVO_SENDER_EMAIL}
+    name: ${BREVO_SENDER_NAME}
   host: http://localhost:3000
