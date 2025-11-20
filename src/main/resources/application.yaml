@@ -28,18 +28,6 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 20MB
-  mail:
-    host: smtp-relay.brevo.com
-    port: 587
-    username: 8a5a5a001@smtp-brevo.com
-    password: xsmtpsib-ad3b5f6e0f48f81124055b356b2a92c2334cd90a62095c2e0855991aa077d574-B3wQcG8VPDbLJknw
-    properties:
-      mail:
-        debug: true
-        smtp:
-          auth: true
-          starttls:
-            enable: true
 
 cloudinary:
   cloud_name: ${CLOUDINARY_CLOUD_NAME:dlfnluzp0}
