@@ -3,24 +3,27 @@
     import lombok.AccessLevel;
     import lombok.AllArgsConstructor;
     import lombok.experimental.FieldDefaults;
-    import org.springframework.security.access.prepost.PostAuthorize;
     import org.springframework.security.access.prepost.PreAuthorize;
     import org.springframework.stereotype.Service;
     import org.springframework.transaction.annotation.Transactional;
     import thanhcom.site.lkdt.dto.request.RoleRequest;
     import thanhcom.site.lkdt.dto.request.UserRequest;
     import thanhcom.site.lkdt.entity.Account;
+    import thanhcom.site.lkdt.entity.PasswordResetToken;
     import thanhcom.site.lkdt.entity.Role;
     import thanhcom.site.lkdt.enums.ErrCode;
     import thanhcom.site.lkdt.exception.AppException;
     import thanhcom.site.lkdt.repository.AccountRepository;
+    import thanhcom.site.lkdt.repository.PasswordResetTokenRepository;
     import thanhcom.site.lkdt.repository.RoleRepository;
     import thanhcom.site.lkdt.utility.PassEncode;
     import thanhcom.site.lkdt.utility.SecurityUtils;
 
+    import java.time.LocalDateTime;
     import java.util.List;
     import java.util.Map;
     import java.util.Set;
+    import java.util.UUID;
     import java.util.stream.Collectors;
 
     @Service
@@ -31,6 +34,8 @@
         AccountRepository accountRepository;
         PassEncode passEncode;
         RoleRepository roleRepository;
+        PasswordResetTokenRepository passwordResetTokenRepository;
+        EmailService emailService;
         @PreAuthorize("hasRole('ADMIN')")
         public List<Account> getAllAccounts() {
             // lặp qua các claim trong JWT và in ra chúng từ tiện ích SecurityUtils
@@ -93,4 +98,36 @@
             return accountRepository.findByUsername(currentUsername)
                     .orElseThrow(() -> new AppException(ErrCode.USER_NOT_EXISTED));
         }
+
+// Tạo token đặt lại mật khẩu và gửi email cho người dùng
+        @Transactional
+        public void createResetPasswordToken(String username) {
+            Account user = accountRepository.findByUsername(username)
+                    .orElseThrow(() -> new AppException(ErrCode.USER_NOT_EXISTED));
+
+            String token = UUID.randomUUID().toString();
+            PasswordResetToken resetToken = PasswordResetToken.builder()
+                    .id(token)
+                    .username(username)
+                    .expiryTime(LocalDateTime.now().plusMinutes(10))
+                    .build();
+            passwordResetTokenRepository.save(resetToken);
+            //gửi email
+            emailService.sendResetPasswordEmail(user.getEmail(), username, token);
+        }
+// Đặt lại mật khẩu sử dụng token
+        @Transactional
+        public void resetPassword(String token, String newPassword) {
+            PasswordResetToken resetToken = passwordResetTokenRepository.findById(token)
+                    .orElseThrow(() -> new AppException(ErrCode.TOKEN_INVALID));
+            if (resetToken.getExpiryTime().isBefore(LocalDateTime.now())) {
+                throw new AppException(ErrCode.TOKEN_EXPIRED);
+            }
+            Account user = accountRepository.findByUsername(resetToken.getUsername())
+                    .orElseThrow(() -> new AppException(ErrCode.USER_NOT_EXISTED));
+            user.setPassword(passEncode.getPasswordEncoder().encode(newPassword));
+            accountRepository.save(user);
+            passwordResetTokenRepository.delete(resetToken);
+        }
+
     }

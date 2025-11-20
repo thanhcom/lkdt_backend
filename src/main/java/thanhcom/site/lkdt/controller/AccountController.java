@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import thanhcom.site.lkdt.dto.request.ForgotPasswordNewPass;
+import thanhcom.site.lkdt.dto.request.ForgotPasswordRequest;
 import thanhcom.site.lkdt.dto.request.RoleRequest;
 import thanhcom.site.lkdt.dto.request.UserRequest;
 import thanhcom.site.lkdt.dto.response.UserResponse;
@@ -86,4 +88,28 @@ public class AccountController {
         responseApi.setMessenger("Lấy thông tin tài khoản thành công");
         return ResponseEntity.ok(responseApi);
     }
+
+    // 1️⃣ Gửi email reset password
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        accountService.createResetPasswordToken(request.getUsername());
+        ResponseApi<Void> responseApi = new ResponseApi<>();
+        responseApi.setData(null);
+        responseApi.setResponseCode(2001);
+        responseApi.setMessenger("Email reset mật khẩu đã được gửi đến email ngiười dùng (nếu tồn tại)");
+        return ResponseEntity.ok(responseApi);
+    }
+
+    // 2️⃣ Reset password với token
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ForgotPasswordNewPass request) {
+        accountService.resetPassword(request.getToken(), request.getNewPassword());
+        ResponseApi<Void> responseApi = new ResponseApi<>();
+        responseApi.setData(null);
+        responseApi.setResponseCode(2002);
+        responseApi.setMessenger("Đặt lại mật khẩu thành công");
+        return ResponseEntity.ok(responseApi);
+    }
+
+
 }
