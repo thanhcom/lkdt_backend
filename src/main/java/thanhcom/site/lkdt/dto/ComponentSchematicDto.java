@@ -13,7 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 public class ComponentSchematicDto {
     private Long id;
-    private  ComponentDto component;
     private String schematicName;
     private String schematicFile;
     private List<String> schematicImages; // List URL ảnh

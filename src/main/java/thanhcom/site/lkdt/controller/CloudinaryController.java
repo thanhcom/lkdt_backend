@@ -23,7 +23,7 @@ public class CloudinaryController {
                                         @RequestParam(value = "publicId", required = false) String publicId) {
         ResponseApi<UploadResponse> responseApi = new ResponseApi<>();
         try {
-            UploadResponse upload = cloudinaryService.upload(file, publicId);
+            UploadResponse upload = cloudinaryService.upload(file, publicId,"raw");
             responseApi.setData(upload);
             responseApi.setResponseCode(1001);
             responseApi.setMessenger("Upload thành công");
@@ -40,7 +40,8 @@ public class CloudinaryController {
     public ResponseEntity<?> deleteFile(@PathVariable String publicId) {
         ResponseApi<Map<String, Object>> responseApi = new ResponseApi<>();
         try {
-            Map<String, Object> result = cloudinaryService.delete(publicId);
+            //Map<String, Object> result = cloudinaryService.delete(publicId);
+            Map<String, Object> result = null;
             responseApi.setData(result);
             responseApi.setResponseCode(1001);
             responseApi.setMessenger("Xóa file thành công");

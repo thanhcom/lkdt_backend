@@ -137,6 +137,7 @@ public class ComponentService {
         component.setType(request.getType());
         component.setManufacturer(request.getManufacturer());
         component.setUnit(request.getUnit());
+        component.setPackageField(request.getPackageField());
         component.setLocation(request.getLocation());
         component.setSpecification(request.getSpecification());
         component.setStockQuantity(request.getStockQuantity());

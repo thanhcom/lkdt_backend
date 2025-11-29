@@ -12,8 +12,10 @@ import sibApi.TransactionalEmailsApi;
 import sibModel.SendSmtpEmail;
 import sibModel.SendSmtpEmailSender;
 import sibModel.SendSmtpEmailTo;
+import thanhcom.site.lkdt.dto.request.SendMailRequest;
 
 import java.util.Collections;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -87,4 +89,26 @@ public class EmailService {
         email.setHtmlContent(htmlContent);
         return email;
     }
+
+    public SendSmtpEmail sendMail(SendMailRequest request) {
+
+        SendSmtpEmailSender sender = new SendSmtpEmailSender();
+        sender.setEmail(senderEmail);
+        sender.setName(senderName);
+
+        List<SendSmtpEmailTo> toList = request.getToEmail().stream().map(email -> {
+            SendSmtpEmailTo recipient = new SendSmtpEmailTo();
+            recipient.setEmail(email);
+            return recipient;
+        }).toList();
+
+        SendSmtpEmail email = new SendSmtpEmail();
+        email.setSender(sender);
+        email.setTo(toList);
+        email.setSubject("Yêu cầu đặt lại mật khẩu LKDT");
+        email.setHtmlContent(request.getHtmlContent());
+        return email;
+    }
+
+
 }

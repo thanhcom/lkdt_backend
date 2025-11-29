@@ -103,8 +103,12 @@ public class ComponentController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createComponent(@Valid @RequestBody ComponentRequest componentRequest) {
-        // Implementation for creating a new component
+    public ResponseEntity<?> createComponent(@Valid @RequestBody ComponentCreateRequest componentRequest) {
+        Component component = componentService.createComponent(componentRequest);
+        ResponseApi<ComponentResponse> responseApi = new ResponseApi<>();
+        responseApi.setData(componentMapper.ResToDto(component));
+        responseApi.setResponseCode(2004);
+        responseApi.setMessenger("Tạo Mới Linh Kiện Thành Công ");
         return ResponseEntity.ok().body(componentRequest);
     }
 
@@ -127,6 +131,15 @@ public class ComponentController {
         response.setResponseCode(2004); // business code ví dụ: 2004 = Get detail success
         response.setMessenger("Lấy chi tiết linh kiện thành công");
         response.setData(component);
+        return ResponseEntity.ok().body(response);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<?> deleteComponent(@PathVariable Long id) {
+        componentService.deleteComponent(id);
+        ResponseApi<Void> response = new ResponseApi<>();
+        response.setResponseCode(2005); // business code ví dụ: 2005 = Delete success
+        response.setMessenger("Xóa linh kiện thành công");
         return ResponseEntity.ok().body(response);
     }
 

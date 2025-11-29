@@ -8,5 +8,6 @@ import java.util.List;
 
 @Repository
 public interface ComponentSchematicRepository extends JpaRepository<ComponentSchematic , Long> {
-    List<ComponentSchematic> findByComponentId(Long componentId);
+    List<ComponentSchematic> findByComponent_Id(Long componentId);
+
 }

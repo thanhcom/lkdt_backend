@@ -8,6 +8,7 @@ public class ComponentCreateRequest {
     private String name;
     private String type;
     private String manufacturer;
+    private String packageField;
     private String unit;
     private String location;
     private Integer stockQuantity;

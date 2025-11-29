@@ -13,8 +13,13 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import thanhcom.site.lkdt.exception.CustomAccessDeniedHandler;
 import thanhcom.site.lkdt.exception.JwtException;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -38,10 +43,29 @@ public class SecurityConfig {
         this.accessDeniedHandler = accessDeniedHandler;
     }
 
+    // ===== CORS CONFIGURATION =====
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:*")); // cho phép bất kỳ port localhost
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
+
+
+    // ===== SECURITY FILTER CHAIN =====
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.authorizeHttpRequests(request -> request
+        http.cors() // bật CORS
+                .and()
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(request -> request
                         .requestMatchers(HttpMethod.GET, Public_endpoint).permitAll()
                         .requestMatchers(HttpMethod.POST, Public_endpoint).permitAll()
                         .requestMatchers(HttpMethod.PUT, Public_endpoint).permitAll()
@@ -56,32 +80,26 @@ public class SecurityConfig {
                                 .decoder(customJwtDecoder)
                                 .jwtAuthenticationConverter(authenticationConverter())
                         )
-                )
-                .csrf(AbstractHttpConfigurer::disable);
+                );
 
-        // ⚠️ Thêm filter custom để bắt lỗi TokenExpiredException / JwtException
+        // Thêm filter custom để bắt lỗi TokenExpiredException / JwtException
         http.addFilterBefore(new JwtException(), BearerTokenAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // Chuyển từ SCOPE_ sang ROLE_
+    // ===== JWT AUTH CONVERTER =====
     @Bean
     JwtAuthenticationConverter authenticationConverter() {
         JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
-
-        // ⚙️ Thêm dòng này để Spring đọc claim "scope" thay vì mặc định "scp"
-        authoritiesConverter.setAuthoritiesClaimName("scope");
-
-        // 🧩 Không thêm prefix "ROLE_" nữa, vì bạn đã có sẵn trong token
-        authoritiesConverter.setAuthorityPrefix("");
-
+        authoritiesConverter.setAuthoritiesClaimName("scope"); // đọc claim "scope" từ token
+        authoritiesConverter.setAuthorityPrefix(""); // token đã có ROLE_, không thêm prefix
         JwtAuthenticationConverter authenticationConverter = new JwtAuthenticationConverter();
         authenticationConverter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
         return authenticationConverter;
     }
 
-    // Cho phép Swagger UI
+    // ===== SWAGGER IGNORE =====
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()

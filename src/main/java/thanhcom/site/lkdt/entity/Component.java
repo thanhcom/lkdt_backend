@@ -7,6 +7,7 @@ import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -47,4 +48,13 @@ public class Component {
     @ColumnDefault("now()")
     @Column(name = "created_at")
     private OffsetDateTime createdAt;
+
+    // ====== RELATIONSHIP ======
+
+    /**
+     * 1 Component → N OrderItem
+     */
+    @OneToMany(mappedBy = "component", fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<OrderItem> orderItems = new ArrayList<>();
 }

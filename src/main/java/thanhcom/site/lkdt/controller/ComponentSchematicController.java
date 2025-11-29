@@ -106,6 +106,17 @@ public class ComponentSchematicController {
         return ResponseEntity.ok(responseApi);
     }
 
+    // READ BY COMPONENT ID
+    @GetMapping("/component/{componentId}")
+    public ResponseEntity<?> getByComponentId(@PathVariable Long componentId) {
+        List<ComponentSchematic> schematics = schematicService.getByComponentId(componentId);
+        ResponseApi<List<ComponentSchematicDto>> responseApi = new ResponseApi<>();
+        responseApi.setMessenger("Lấy sơ đồ linh kiện theo mã linh kiện thành công");
+        responseApi.setData(schematicMapper.toListDto(schematics));
+        responseApi.setResponseCode(2001);
+        return ResponseEntity.ok(responseApi);
+    }
+
     // DELETE
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {

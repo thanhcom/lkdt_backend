@@ -42,15 +42,17 @@ public class ComponentSchematicService {
         schematic.setSchematicName(schematicName);
         schematic.setDescription(description);
 
-        // Upload PDF/ZIP
+        // Upload PDF/ZIP as raw
         if (schematicFile != null && !schematicFile.isEmpty()) {
             log.info("Uploading schematicFile: {}", schematicFile.getOriginalFilename());
-            schematic.setSchematicFile(uploadFile(schematicFile));
+            // Chỉnh sửa: gọi upload với resource_type = "raw"
+            UploadResponse response = cloudinaryService.upload(schematicFile, null, "raw");
+            schematic.setSchematicFile(response.getSecureUrl());
         } else {
             log.warn("schematicFile is null or empty");
         }
 
-        // Upload nhiều ảnh
+        // Upload images
         if (schematicImages != null && !schematicImages.isEmpty()) {
             log.info("Uploading {} images", schematicImages.size());
             schematic.setSchematicImage(String.join(",", uploadImages(schematicImages)));
@@ -62,8 +64,10 @@ public class ComponentSchematicService {
     }
 
     // ================= Helper =================
-    private String uploadFile(MultipartFile file) throws Exception {
-        UploadResponse response = cloudinaryService.upload(file, null);
+
+    // Upload image (không cần chỉnh sửa PDF nữa)
+    private String uploadImageFile(MultipartFile file) throws Exception {
+        UploadResponse response = cloudinaryService.upload(file, null, "image"); // resource_type = image
         return response.getSecureUrl();
     }
 
@@ -72,7 +76,7 @@ public class ComponentSchematicService {
         for (MultipartFile img : images) {
             if (img != null && !img.isEmpty()) {
                 log.info("Uploading image: {}", img.getOriginalFilename());
-                urls.add(uploadFile(img));
+                urls.add(uploadImageFile(img));
             } else {
                 log.warn("Image file is null or empty");
             }
@@ -80,7 +84,7 @@ public class ComponentSchematicService {
         return urls;
     }
 
-    // ================= EDIT  =================
+    // ================= EDIT =================
     @Transactional
     public ComponentSchematic updateComponentSchematic(
             Long id,
@@ -93,54 +97,46 @@ public class ComponentSchematicService {
 
         ComponentSchematic schematic = getById(id);
 
-        // Update componentId (nếu gửi lên)
+        // Update componentId
         if (componentId != null) {
             Component newComponent = componentService.getComponentById(componentId);
             schematic.setComponent(newComponent);
         }
 
         // Update text
-        if (schematicName != null) {
-            schematic.setSchematicName(schematicName);
-        }
-
-        if (description != null) {
-            schematic.setDescription(description);
-        }
+        if (schematicName != null) schematic.setSchematicName(schematicName);
+        if (description != null) schematic.setDescription(description);
 
         // Update PDF/ZIP
         if (schematicFile != null && !schematicFile.isEmpty()) {
-            // Xóa file cũ
             deleteFile(schematic.getSchematicFile());
-
-            // Upload file mới
-            String newFileUrl;
             try {
-                newFileUrl = uploadFile(schematicFile);
+                // Chỉnh sửa: upload PDF/ZIP với resource_type = "raw"
+                UploadResponse response = cloudinaryService.upload(schematicFile, null, "raw");
+                schematic.setSchematicFile(response.getSecureUrl());
             } catch (Exception e) {
                 throw new AppException(ErrCode.UPDATE_COMPONENT_SCHEMATIC_FAIL);
             }
-            schematic.setSchematicFile(newFileUrl);
         }
 
         // Update images
         if (schematicImages != null && !schematicImages.isEmpty()) {
-            // Xóa ảnh cũ
             deleteImages(schematic.getSchematicImage());
-
-            // Upload ảnh mới
-            List<String> newImages;
             try {
-                newImages = uploadImages(schematicImages);
+                List<String> newImages = new ArrayList<>();
+                for (MultipartFile img : schematicImages) {
+                    if (img != null && !img.isEmpty()) {
+                        newImages.add(uploadImageFile(img));
+                    }
+                }
+                schematic.setSchematicImage(String.join(",", newImages));
             } catch (Exception e) {
                 throw new AppException(ErrCode.UPDATE_COMPONENT_SCHEMATIC_FAIL);
             }
-            schematic.setSchematicImage(String.join(",", newImages));
         }
 
         return componentSchematicRepository.save(schematic);
     }
-
 
     // ================= READ =================
     public ComponentSchematic getById(Long id) {
@@ -152,14 +148,16 @@ public class ComponentSchematicService {
         return componentSchematicRepository.findAll();
     }
 
+    public List<ComponentSchematic> getByComponentId(Long componentId) {
+        return componentSchematicRepository.findByComponent_Id(componentId);
+    }
+
     // ================= DELETE =================
     @Transactional
     public void deleteComponentSchematic(Long id) {
         ComponentSchematic schematic = getById(id);
-
         deleteFile(schematic.getSchematicFile());
         deleteImages(schematic.getSchematicImage());
-
         componentSchematicRepository.delete(schematic);
         log.info("Deleted ComponentSchematic id={} and all files on Cloudinary", id);
     }
@@ -167,8 +165,9 @@ public class ComponentSchematicService {
     private void deleteFile(String fileUrl) {
         if (fileUrl == null || fileUrl.isBlank()) return;
         try {
-            cloudinaryService.delete(extractPublicId(fileUrl));
-            log.info("Deleted File : {} ", extractPublicId(fileUrl));
+            // Chỉnh sửa: dùng deleteByUrl để xóa đúng PDF/Images
+            cloudinaryService.deleteByUrl(fileUrl);
+            log.info("Deleted File: {}", fileUrl);
         } catch (Exception e) {
             log.warn("Failed to delete file on Cloudinary: {}", fileUrl, e);
         }
@@ -179,28 +178,6 @@ public class ComponentSchematicService {
         String[] urls = imagesCsv.split(",");
         for (String url : urls) {
             deleteFile(url);
-            log.info("Deleted Image  : {} ", extractPublicId(url));
         }
     }
-
-    public String extractPublicId(String url) {
-        if (url == null || url.isBlank()) return "";
-
-        try {
-            String withoutParams = url.split("\\?")[0];
-            String[] parts = withoutParams.split("/upload/");
-            if (parts.length < 2) return "";
-
-            String afterUpload = parts[1]; // v123456/somefolder/file.pdf
-            String[] parts2 = afterUpload.split("/", 2);
-            if (parts2.length < 2) return "";
-
-            String path = parts2[1]; // somefolder/file.pdf
-
-            return path.substring(0, path.lastIndexOf('.')); // bỏ .pdf / .png
-        } catch (Exception e) {
-            return "";
-        }
-    }
-
 }

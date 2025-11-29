@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import thanhcom.site.lkdt.dto.response.UploadResponse;
 
-import jakarta.validation.constraints.NotBlank;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
@@ -30,15 +29,15 @@ public class CloudinaryService {
     String uploadFolder;
 
     private static final Set<String> ALLOWED_TYPES = Set.of(
-            "image/png", "image/jpeg", "image/webp", "video/mp4", "application/pdf"
+            "image/png", "image/jpeg", "image/webp",
+            "video/mp4", "application/pdf", "application/zip"
     );
 
     private static final long MAX_BYTES = 10 * 1024 * 1024L; // 10 MB
 
-    /**
-     * Upload file lên Cloudinary
-     */
-    public UploadResponse upload(MultipartFile file, String publicIdPrefix) throws IOException {
+    // ================= UPLOAD =================
+    public UploadResponse upload(MultipartFile file, String publicIdPrefix, String resourceType) throws IOException {
+
         if (file == null || file.isEmpty()) throw new IllegalArgumentException("File trống");
         if (file.getSize() > MAX_BYTES)
             throw new IllegalArgumentException("File quá lớn: " + MAX_BYTES);
@@ -47,43 +46,74 @@ public class CloudinaryService {
         if (contentType == null || !ALLOWED_TYPES.contains(contentType))
             throw new IllegalArgumentException("Loại file không hợp lệ: " + contentType);
 
-        Map<String, Object> options = ObjectUtils.asMap("resource_type", "auto");
-        if (uploadFolder != null && !uploadFolder.isBlank()) options.put("folder", uploadFolder);
+        if (resourceType == null || resourceType.isBlank()) resourceType = "auto";
+
+        Map<String, Object> options = Map.of(
+                "resource_type", resourceType,
+                "folder", uploadFolder
+        );
+
         if (publicIdPrefix != null && !publicIdPrefix.isBlank()) {
-            options.put("public_id", publicIdPrefix);
-            options.put("overwrite", true);
+            options = Map.of(
+                    "resource_type", resourceType,
+                    "folder", uploadFolder,
+                    "public_id", publicIdPrefix,
+                    "overwrite", true
+            );
         }
 
-        // fix lỗi Unrecognized file parameter
-        byte[] bytes = file.getBytes();
         @SuppressWarnings("unchecked")
-        Map<String, Object> result = cloudinary.uploader().upload(bytes, options);
+        Map<String, Object> result = cloudinary.uploader().upload(file.getBytes(), options);
 
-        String publicId = result.getOrDefault("public_id", "").toString();
-        String secureUrl = result.getOrDefault("secure_url", result.get("url")).toString();
-        return new UploadResponse(publicId, secureUrl);
+        return new UploadResponse(
+                result.get("public_id").toString(),
+                result.get("secure_url").toString()
+        );
     }
 
-    /**
-     * Xóa file theo publicId
-     */
-    public Map<String, Object> delete(@NotBlank String publicId) throws Exception {
-        if (publicId == null || publicId.isBlank())
-            throw new IllegalArgumentException("publicId không được để trống");
-        return cloudinary.uploader().destroy(publicId, ObjectUtils.emptyMap());
+    // ================= DELETE =================
+    public Map<String, Object> delete(String publicId, String resourceType) throws Exception {
+        if (publicId == null || publicId.isBlank()) return Map.of();
+        if (resourceType == null || resourceType.isBlank()) resourceType = "auto";
+
+        log.info("Deleting file Cloudinary publicId={} type={}", publicId, resourceType);
+        return cloudinary.uploader().destroy(publicId, Map.of("resource_type", resourceType));
     }
 
-    /**
-     * Xóa file theo URL (tự tách publicId từ URL)
-     */
-    public Map<String, Object> deleteByUrl(@NotBlank String url) throws Exception {
-        if (url == null || url.isBlank())
-            throw new IllegalArgumentException("URL không được để trống");
+    public Map<String, Object> deleteByUrl(String url) throws Exception {
+        if (url == null || url.isBlank()) return Map.of();
 
-        // Lấy publicId từ URL
-        String[] parts = url.split("/");
-        String filename = parts[parts.length - 1]; // ví dụ: image123.jpg
-        String publicId = filename.contains(".") ? filename.substring(0, filename.lastIndexOf(".")) : filename;
-        return delete(publicId);
+        log.info("Deleting by URL: {}", url);
+
+        // xác định type: image hoặc raw
+        String type = url.contains("/image/") ? "image" : "raw";
+
+        // lấy phần sau /upload/
+        int uploadIndex = url.indexOf("/upload/");
+        if (uploadIndex == -1) {
+            log.warn("URL không hợp lệ: {}", url);
+            return Map.of();
+        }
+
+        String afterUpload = url.substring(uploadIndex + 8); // bỏ "/upload/"
+        // afterUpload: v1763978474/thanhcom-uploads/abcxyz.jpg
+
+        // bỏ version (v123456)
+        int slashIdx = afterUpload.indexOf('/');
+        if (slashIdx == -1) {
+            log.warn("URL không hợp lệ, thiếu folder: {}", url);
+            return Map.of();
+        }
+
+        String withoutVersion = afterUpload.substring(slashIdx + 1); // thanhcom-uploads/abcxyz.jpg
+
+        // bỏ extension nếu có
+        String publicId = withoutVersion.contains(".")
+                ? withoutVersion.substring(0, withoutVersion.lastIndexOf('.'))
+                : withoutVersion;
+
+        log.info("Extracted publicId={} type={}", publicId, type);
+
+        return delete(publicId, type);
     }
 }
