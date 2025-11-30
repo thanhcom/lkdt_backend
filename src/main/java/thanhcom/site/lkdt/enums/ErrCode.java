@@ -60,7 +60,13 @@ public enum ErrCode {
     //--------Upload File
     CREATE_COMPONENT_SCHEMATIC_FAIL(2100,"Create Component Schematic Fail !!!",HttpStatus.INTERNAL_SERVER_ERROR),
     UPDATE_COMPONENT_SCHEMATIC_FAIL(2101,"Update Component Schematic Fail !!!",HttpStatus.INTERNAL_SERVER_ERROR),
-    COMPONENT_SCHEMATIC_NOTFOUND(2102,"Component Schematic Not Found !!!",HttpStatus.NOT_FOUND);
+
+    COMPONENT_SCHEMATIC_NOTFOUND(2102,"Component Schematic Not Found !!!",HttpStatus.NOT_FOUND),
+
+
+    //--------CUSTOMER
+    CUSTOMER_NOT_FOUND(2201,"Customer Not Found !!!",HttpStatus.NOT_FOUND),
+    ;
 
     private final int code;
     private final String Message;

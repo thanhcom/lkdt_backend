@@ -1,12 +1,15 @@
 package thanhcom.site.lkdt.entity;
 
-import io.swagger.v3.oas.models.Components;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_item")
+@Getter
+@Setter
 public class OrderItem {
 
     @Id
@@ -27,7 +30,7 @@ public class OrderItem {
     // N item → 1 component
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "component_id")
-    private Components component;
+    private Component component;
 
     // getters/setters
 }
