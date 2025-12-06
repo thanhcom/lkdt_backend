@@ -66,7 +66,10 @@ public enum ErrCode {
 
     //--------CUSTOMER
     CUSTOMER_NOT_FOUND(2201,"Customer Not Found !!!",HttpStatus.NOT_FOUND),
-    ;
+
+    //--------ORDERS
+    ORDER_NOT_FOUND(2300,"Order Not Found !!!",HttpStatus.NOT_FOUND),
+    ORDER_INSUFFICIENT_STOCK(2301,"Insufficient stock for the requested component !!!",HttpStatus.BAD_REQUEST);
 
     private final int code;
     private final String Message;

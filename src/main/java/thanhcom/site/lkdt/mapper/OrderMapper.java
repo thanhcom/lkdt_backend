@@ -20,6 +20,7 @@ public interface OrderMapper {
     Orders toEntity(OrderDTO dto);
 
     OrderResponse toResponse(Orders entity);
+    Orders toEntityFromResponse(OrderResponse dto);
     List<OrderResponse> toResponses(List<Orders> entities);
 
 }

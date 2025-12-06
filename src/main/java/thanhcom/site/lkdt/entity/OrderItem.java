@@ -19,7 +19,7 @@ public class OrderItem {
     private Integer quantity;
 
     private BigDecimal price; // giá tại thời điểm order
-
+    @Column(name = "total", insertable = false, updatable = false)
     private BigDecimal total; // quantity * price (Postgres auto generate)
 
     // N item → 1 order

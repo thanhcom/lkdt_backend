@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import thanhcom.site.lkdt.dto.CustomerDTO;
 import thanhcom.site.lkdt.dto.OrderDTO;
 import thanhcom.site.lkdt.dto.response.OrderResponse;
 import thanhcom.site.lkdt.entity.Orders;
@@ -49,12 +48,13 @@ public class OrdersController {
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime dateFrom,
             @RequestParam(value = "dateTo", required = false)
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime dateTo,
+            @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "keyword", required = false) String keyword,
             Pageable pageable
     ) {
         ResponseApi<List<?>> responseApi = new ResponseApi<>();
         Page<Orders> page = ordersService.searchOrders(
-                orderId, customerId, minTotal, maxTotal, dateFrom, dateTo, keyword, pageable
+                orderId, customerId, minTotal, maxTotal, dateFrom, dateTo, status,keyword,pageable
         );
         Page<OrderResponse> dtoPage = page.map(orderMapper::toResponse);
         responseApi.setResponseCode(2001);
@@ -92,8 +92,8 @@ public class OrdersController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createOrder(@RequestBody OrderDTO orderDTO) {
-        OrderResponse orderResponse = orderMapper.toResponse(ordersService.createOrder(orderMapper.toEntity(orderDTO)));
+    public ResponseEntity<?> createOrder(@RequestBody OrderResponse orderDTO) {
+        OrderResponse orderResponse = orderMapper.toResponse(ordersService.createOrder(orderMapper.toEntityFromResponse(orderDTO)));
         ResponseApi<OrderResponse> responseApi = new ResponseApi<>();
         responseApi.setData(orderResponse);
         responseApi.setResponseCode(2002);
@@ -102,8 +102,8 @@ public class OrdersController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<?> updateOrder(@PathVariable Long id, @RequestBody OrderDTO orderDTO) {
-        OrderResponse orderResponse = orderMapper.toResponse(ordersService.updateOrder(id, orderMapper.toEntity(orderDTO)));
+    public ResponseEntity<?> updateOrder(@PathVariable Long id, @RequestBody OrderResponse orderDTO) {
+        OrderResponse orderResponse = orderMapper.toResponse(ordersService.updateOrder(id, orderMapper.toEntityFromResponse(orderDTO)));
         ResponseApi<OrderResponse> responseApi = new ResponseApi<>();
         responseApi.setData(orderResponse);
         responseApi.setResponseCode(2003);

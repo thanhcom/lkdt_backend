@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,8 +20,7 @@ public class Orders {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private LocalDateTime orderDate = LocalDateTime.now();
-
+    private OffsetDateTime orderDate;
     private BigDecimal totalAmount;
 
     private String status;
@@ -34,5 +34,13 @@ public class Orders {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
-    // getters/setters
+    @PrePersist
+    public void prePersist() {
+        if (orderDate == null) {
+            orderDate = OffsetDateTime.now();
+        }
+        if (status == null) {
+            status = "PENDING";
+        }
+    }
 }

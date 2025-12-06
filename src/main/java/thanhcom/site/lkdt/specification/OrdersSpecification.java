@@ -44,15 +44,25 @@ public class OrdersSpecification {
                         : cb.equal(root.get("id"), id);
     }
 
-    // Tìm kiếm keyword vào tên customer
+    // Keyword tìm cả tên khách hàng và số điện thoại
     public static Specification<Orders> keyword(String keyword) {
         return (root, query, cb) -> {
             if (keyword == null || keyword.isBlank()) return null;
 
-            return cb.like(
-                    cb.lower(root.get("customer").get("fullName")),
-                    "%" + keyword.toLowerCase() + "%"
+            String likePattern = "%" + keyword.toLowerCase() + "%";
+
+            return cb.or(
+                    cb.like(cb.lower(root.get("customer").get("fullName")), likePattern),
+                    cb.like(cb.lower(root.get("customer").get("phone")), likePattern)
             );
+        };
+    }
+
+    // Tìm theo trạng thái
+    public static Specification<Orders> hasStatus(String status) {
+        return (root, query, cb) -> {
+            if (status == null || status.isBlank()) return null;
+            return cb.equal(root.get("status"), status);
         };
     }
 }
