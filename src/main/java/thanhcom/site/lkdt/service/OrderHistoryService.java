@@ -3,6 +3,7 @@ package thanhcom.site.lkdt.service;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,8 @@ public class OrderHistoryService {
             String updatedBy,
             Pageable pageable
     ) {
-        return historyRepository.findAll(
+        // 1. Lấy page OrderHistory (chỉ filter, không fetch)
+        Page<OrderHistory> page = historyRepository.findAll(
                 OrderHistorySpecification.filter(
                         customerId, customerName,
                         componentId, componentName,
@@ -62,7 +64,16 @@ public class OrderHistoryService {
                 ),
                 pageable
         );
+
+        // 2. Batch load items + component (lazy load)
+        page.getContent().forEach(oh -> {
+            Hibernate.initialize(oh.getOrder().getItems());
+            oh.getOrder().getItems().forEach(item -> Hibernate.initialize(item.getComponent()));
+        });
+
+        return page;
     }
+
 
     /**
      * Lấy tất cả OrderHistory (không paging)

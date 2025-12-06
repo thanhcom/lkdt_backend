@@ -5,7 +5,6 @@ import thanhcom.site.lkdt.entity.*;
 
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Fetch;
 import java.time.OffsetDateTime;
 
 public class OrderHistorySpecification {
@@ -21,15 +20,11 @@ public class OrderHistorySpecification {
             String updatedBy
     ) {
         return (root, query, cb) -> {
-
-            // --- DISTINCT để tránh duplicate do OneToMany ---
+            // DISTINCT để tránh duplicate do OneToMany join
+            assert query != null;
             query.distinct(true);
 
-            // --- FETCH để MapStruct load items + component không null ---
-            Fetch<OrderHistory, Orders> orderFetch = root.fetch("order", JoinType.LEFT);
-            orderFetch.fetch("items", JoinType.LEFT).fetch("component", JoinType.LEFT);
-
-            // --- JOIN để filter ---
+            // JOIN để filter
             Join<OrderHistory, Orders> orderJoin = root.join("order", JoinType.LEFT);
             Join<Orders, Customer> customerJoin = orderJoin.join("customer", JoinType.LEFT);
             Join<Orders, OrderItem> orderItemJoin = orderJoin.join("items", JoinType.LEFT);
@@ -37,7 +32,7 @@ public class OrderHistorySpecification {
 
             var predicate = cb.conjunction();
 
-            // === CUSTOMER FILTER ===
+            // CUSTOMER FILTER
             if (customerId != null) {
                 predicate = cb.and(predicate, cb.equal(customerJoin.get("id"), customerId));
             }
@@ -47,7 +42,7 @@ public class OrderHistorySpecification {
                 );
             }
 
-            // === COMPONENT FILTER ===
+            // COMPONENT FILTER
             if (componentId != null) {
                 predicate = cb.and(predicate, cb.equal(componentJoin.get("id"), componentId));
             }
@@ -57,7 +52,7 @@ public class OrderHistorySpecification {
                 );
             }
 
-            // === ORDER HISTORY FIELDS ===
+            // ORDER HISTORY FIELDS
             if (createdFrom != null) {
                 predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("createdAt"), createdFrom));
             }
@@ -74,5 +69,4 @@ public class OrderHistorySpecification {
             return predicate;
         };
     }
-
 }
