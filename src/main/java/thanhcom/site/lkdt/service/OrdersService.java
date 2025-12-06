@@ -32,6 +32,8 @@ public class OrdersService {
     OrdersRepository ordersRepository;
     CustomerRepository customerRepository;
     ComponentRepository componentRepository;
+    OrderHistoryService historyService;
+
     public List<Orders> getAllOrders() {
         return ordersRepository.findAll();
     }
@@ -80,7 +82,7 @@ public class OrdersService {
         // Set quan hệ 2 chiều và tính total của từng item
         BigDecimal totalAmount = BigDecimal.ZERO;
         for (OrderItem item : order.getItems()) {
-            Component c = componentRepository.findById(item.getId())
+            Component c = componentRepository.findById(item.getComponent().getId())
                     .orElseThrow(() -> new AppException(ErrCode.COMPONENT_NOTFOUND));
             // kiểm tra tồn kho
             if (c.getStockQuantity() < item.getQuantity()) {
@@ -107,7 +109,13 @@ public class OrdersService {
         }
 
         // Lưu đơn hàng cùng items
-        return ordersRepository.save(order);
+        Orders saved = ordersRepository.save(order);
+        // Ghi log tạo đơn
+        historyService.log(saved, "CREATED",
+                "Tạo đơn hàng mới. Tổng tiền: " + saved.getTotalAmount());
+
+        return saved;
+
     }
 
     public Orders getOrderById(Long id) {
@@ -116,45 +124,131 @@ public class OrdersService {
 
     @Transactional
     public Orders updateOrder(Long id, Orders updatedOrder) {
-        return ordersRepository.findById(id).map(order -> {
-            order.setStatus(updatedOrder.getStatus());
-
-            if (updatedOrder.getItems() != null) {
-                Map<Long, OrderItem> existingItems = order.getItems().stream()
-                        .collect(Collectors.toMap(i -> i.getComponent().getId(), i -> i));
-
-                List<OrderItem> newItems = new ArrayList<>();
-                for (OrderItem updatedItem : updatedOrder.getItems()) {
-                    OrderItem item = existingItems.getOrDefault(
-                            updatedItem.getComponent().getId(),
-                            new OrderItem()
-                    );
-                    item.setOrder(order);
-                    item.setComponent(updatedItem.getComponent());
-                    item.setQuantity(updatedItem.getQuantity());
-                    item.setPrice(updatedItem.getPrice());
-                    newItems.add(item);
+        Orders order = ordersRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrCode.ORDER_NOT_FOUND));
+        // update status
+        order.setStatus(updatedOrder.getStatus());
+        // ===========================================
+        // 1. Map item cũ theo componentId
+        // ===========================================
+        Map<Long, OrderItem> oldItems = order.getItems()
+                .stream()
+                .collect(Collectors.toMap(i -> i.getComponent().getId(), i -> i));
+        List<OrderItem> finalItems = new ArrayList<>();
+        // ===========================================
+        // 2. Xử lý từng item mới
+        // ===========================================
+        for (OrderItem newItem : updatedOrder.getItems()) {
+            Long compId = newItem.getComponent().getId();
+            Component comp = componentRepository.findById(compId)
+                    .orElseThrow(() -> new AppException(ErrCode.COMPONENT_NOTFOUND));
+            OrderItem oldItem = oldItems.get(compId);
+            if (oldItem == null) {
+                // ---------------------------------------
+                // 🆕 Item mới → Trừ kho theo quantity mới
+                // ---------------------------------------
+                if (comp.getStockQuantity() < newItem.getQuantity()) {
+                    throw new AppException(ErrCode.ORDER_INSUFFICIENT_STOCK);
                 }
-                order.getItems().clear();
-                order.getItems().addAll(newItems);
+                comp.setStockQuantity(comp.getStockQuantity() - newItem.getQuantity());
+                componentRepository.save(comp);
+                newItem.setOrder(order);
+                // total do DB auto generate vì bạn đặt insertable = false
+                finalItems.add(newItem);
+            } else {
+                // ---------------------------------------
+                // 🔁 Item cũ → So sánh qty cũ và mới
+                // ---------------------------------------
+                int oldQty = oldItem.getQuantity();
+                int newQty = newItem.getQuantity();
+                if (newQty > oldQty) {
+                    // cần trừ thêm kho
+                    int diff = newQty - oldQty;
+                    if (comp.getStockQuantity() < diff) {
+                        throw new AppException(ErrCode.ORDER_INSUFFICIENT_STOCK);
+                    }
+                    comp.setStockQuantity(comp.getStockQuantity() - diff);
+                } else if (newQty < oldQty) {
+                    // cần hoàn kho
+                    int diff = oldQty - newQty;
+                    comp.setStockQuantity(comp.getStockQuantity() + diff);
+                }
+                componentRepository.save(comp);
+                // cập nhật item cũ
+                oldItem.setQuantity(newQty);
+                oldItem.setPrice(newItem.getPrice());
+                finalItems.add(oldItem);
+                // đánh dấu đã xử lý
+                oldItems.remove(compId);
             }
+        }
+        // ===========================================
+        // 3. Item bị xóa hoàn toàn → trả lại kho
+        // ===========================================
+        for (OrderItem removed : oldItems.values()) {
+            Component comp = componentRepository.findById(removed.getComponent().getId())
+                    .orElseThrow(() -> new AppException(ErrCode.COMPONENT_NOTFOUND));
 
-            // Tính lại totalAmount
-            BigDecimal total = order.getItems().stream()
-                    .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            order.setTotalAmount(total);
+            comp.setStockQuantity(comp.getStockQuantity() + removed.getQuantity());
+            componentRepository.save(comp);
+        }
+        // ===========================================
+        // 4. Gán lại items (JPA tự orphanRemoval)
+        // ===========================================
+        order.getItems().clear();
+        order.getItems().addAll(finalItems);
+        // ===========================================
+        // 5. Tính lại totalAmount (total do DB auto)
+        // ===========================================
+        BigDecimal total = order.getItems().stream()
+                .map(i -> i.getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        order.setTotalAmount(total);
+        Orders updated = ordersRepository.save(order);
 
-            return ordersRepository.save(order);
-        }).orElse(null);
+// Ghi log trạng thái
+        historyService.log(updated, "UPDATED",
+                "Cập nhật trạng thái thành: " + updatedOrder.getStatus());
+
+// Log chi tiết item
+        StringBuilder detail = new StringBuilder();
+        for (OrderItem newItem : updatedOrder.getItems()) {
+            detail.append(
+                    String.format("Item #%d: %d cái, giá %s\n",
+                            newItem.getComponent().getId(),
+                            newItem.getQuantity(),
+                            newItem.getPrice())
+            );
+        }
+
+        historyService.log(updated, "UPDATED_ITEMS",
+                "Danh sách item sau cập nhật:\n" + detail);
+
+        return updated;
+
     }
 
 
-
+    @Transactional
     public void deleteOrder(Long id) {
-        ordersRepository.findById(id).map(order -> {
-            ordersRepository.delete(order);
-            return true;
-        });
+        Orders order = ordersRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrCode.ORDER_NOT_FOUND));
+        // =============================
+        // 1. Hoàn lại tồn kho
+        // =============================
+        for (OrderItem item : order.getItems()) {
+            Component comp = componentRepository.findById(item.getComponent().getId())
+                    .orElseThrow(() -> new AppException(ErrCode.COMPONENT_NOTFOUND));
+            comp.setStockQuantity(comp.getStockQuantity() + item.getQuantity());
+            componentRepository.save(comp);
+        }
+        // =============================
+        // 2. Xóa order (JPA tự xóa item nhờ orphanRemoval)
+        // =============================
+        historyService.log(order, "DELETED",
+                "Xóa đơn hàng và hoàn lại tồn kho");
+
+        ordersRepository.delete(order);
     }
+
 }
