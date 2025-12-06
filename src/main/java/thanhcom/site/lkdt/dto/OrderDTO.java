@@ -10,3 +10,5 @@ public class OrderDTO {
     private Long customerId;            // khách mua hàng
     private List<OrderItemDTO> items;   // danh sách sản phẩm
 }
+
+

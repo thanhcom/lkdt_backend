@@ -8,7 +8,8 @@ import java.time.OffsetDateTime;
 @Data
 @NoArgsConstructor
 public class OrderHistoryDto {
-    OrderResponse order;
+    Long id;
+    OrderDTO order;
     String action;
     String description;
     OffsetDateTime createdAt;
